@@ -27,4 +27,8 @@ public class Config {
 
     // POST cập nhật sản xuất
     public static final String SAVE_CFM_PROD    = BASE_URL + "savecfmproduction";
+
+    public static final String GET_TEAMS   = BASE_URL + "getcfmteams";
+    public static final String GET_DEVS    = BASE_URL + "getcfmdevs";
+
 }

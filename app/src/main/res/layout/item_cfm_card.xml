@@ -15,12 +15,14 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="12dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="6dp">
 
             <TextView
                 android:id="@+id/tvCfmId"
@@ -30,25 +32,151 @@
                 android:text="CFM ID:"
                 android:textColor="@color/nb_red"
                 android:textStyle="bold"
-                android:textSize="16sp" />
+                android:textSize="15sp" />
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/tvHeader"
+        <!-- HIGHLIGHT CONTAINER: 5 Columns like Dashboard -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="@color/textPrimary"
-            android:textStyle="bold"
-            android:textSize="15sp"
-            android:paddingTop="2dp"
-            android:paddingBottom="6dp" />
+            android:orientation="horizontal"
+            android:background="@drawable/highlight_bg"
+            android:padding="8dp"
+            android:layout_marginBottom="8dp"
+            android:weightSum="10">
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="#E0E0E0"
-            android:layout_marginBottom="6dp" />
+            <!-- Season Column -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.5"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="SEASON"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/textSecondary"
+                    android:gravity="center_horizontal" />
+                <TextView
+                    android:id="@+id/tvSeasonVal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="-"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/textPrimary"
+                    android:gravity="center_horizontal"
+                    android:layout_marginTop="2dp" />
+            </LinearLayout>
 
+            <!-- Model Column -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="3.5"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="MODEL"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/textSecondary"
+                    android:gravity="center_horizontal" />
+                <TextView
+                    android:id="@+id/tvModelVal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="-"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/textPrimary"
+                    android:gravity="center_horizontal"
+                    android:layout_marginTop="2dp" />
+            </LinearLayout>
+
+            <!-- Stage Column -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2.5"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="STAGE"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/textSecondary"
+                    android:gravity="center_horizontal" />
+                <TextView
+                    android:id="@+id/tvStageVal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="-"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/textPrimary"
+                    android:gravity="center_horizontal"
+                    android:layout_marginTop="2dp" />
+            </LinearLayout>
+
+            <!-- Style Column -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.3"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="STYLE"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/textSecondary"
+                    android:gravity="center_horizontal" />
+                <TextView
+                    android:id="@+id/tvStyleVal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="-"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/textPrimary"
+                    android:gravity="center_horizontal"
+                    android:layout_marginTop="2dp" />
+            </LinearLayout>
+
+            <!-- Quantity Column -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.2"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="QTY"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/textSecondary"
+                    android:gravity="center_horizontal" />
+                <TextView
+                    android:id="@+id/tvQtyVal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="-"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/nb_red"
+                    android:gravity="center_horizontal"
+                    android:layout_marginTop="2dp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Secondary Information Details (compact, lighter text) -->
         <TextView android:id="@+id/tvSeason" style="@style/CardLine" />
         <TextView android:id="@+id/tvStage"  style="@style/CardLine" />
         <TextView android:id="@+id/tvLast"   style="@style/CardLine" />

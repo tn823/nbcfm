@@ -25,8 +25,8 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
-    private Spinner spinnerSeason, spinnerStage, spinnerModel;
-    private Button btnRetrieve;
+    private Spinner spinnerSeasonFrom, spinnerSeasonTo, spinnerStage, spinnerModel, spinnerTeam, spinnerDev;
+    private Button btnRetrieve, btnClearFilter;
     private RecyclerView recyclerView;
     private ProgressBar progressBar;
     private TextView tvStatus, tvEmpty;
@@ -34,6 +34,8 @@ public class MainActivity extends AppCompatActivity {
     private final ArrayList<String> arraySeason = new ArrayList<>();
     private final ArrayList<String> arrayStage  = new ArrayList<>();
     private final ArrayList<String> arrayModel  = new ArrayList<>();
+    private final ArrayList<String> arrayTeam  = new ArrayList<>();
+    private final ArrayList<String> arrayDev  = new ArrayList<>();
 
     private final ArrayList<CfmItem> cfmList = new ArrayList<>();
     private CfmAdapter adapter;
@@ -47,10 +49,14 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        spinnerSeason = findViewById(R.id.spinnerSeason);
-        spinnerStage  = findViewById(R.id.spinnerStage);
-        spinnerModel  = findViewById(R.id.spinnerModel);
+        spinnerSeasonFrom = findViewById(R.id.spinnerSeasonFrom);
+        spinnerSeasonTo   = findViewById(R.id.spinnerSeasonTo);
+        spinnerStage      = findViewById(R.id.spinnerStage);
+        spinnerModel      = findViewById(R.id.spinnerModel);
+        spinnerTeam       = findViewById(R.id.spinnerTeam);
+        spinnerDev        = findViewById(R.id.spinnerDev);
         btnRetrieve   = findViewById(R.id.btnRetrieve);
+        btnClearFilter = findViewById(R.id.btnClearFilter);
         recyclerView  = findViewById(R.id.recyclerView);
         progressBar   = findViewById(R.id.progressBar);
         tvStatus      = findViewById(R.id.tvStatus);
@@ -65,22 +71,53 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
 
-        // Season doi -> nap lai Stage (Stage xong se tu nap Model)
-        spinnerSeason.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+        // Season From đổi -> Tự động đồng bộ Season To và nạp lại Stage
+        spinnerSeasonFrom.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(android.widget.AdapterView<?> p, View v, int pos, long id) {
-                if (ignoreSeason) { ignoreSeason = false; return; }   // bo qua phat tu dong dau tien
+                if (ignoreSeason) { ignoreSeason = false; return; }
+                if (spinnerSeasonTo.getSelectedItemPosition() != pos) {
+                    spinnerSeasonTo.setSelection(pos);
+                } else {
+                    reloadStages();
+                }
+            }
+            @Override public void onNothingSelected(android.widget.AdapterView<?> p) { }
+        });
+
+        // Season To đổi -> nạp lại Stage
+        spinnerSeasonTo.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(android.widget.AdapterView<?> p, View v, int pos, long id) {
                 reloadStages();
             }
             @Override public void onNothingSelected(android.widget.AdapterView<?> p) { }
         });
 
-        // Stage doi -> nap lai Model
+        // Stage đổi -> nạp lại Model
         spinnerStage.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(android.widget.AdapterView<?> p, View v, int pos, long id) {
                 if (ignoreStage) { ignoreStage = false; return; }     // bo qua phat tu dong dau tien
                 reloadModels();
+            }
+            @Override public void onNothingSelected(android.widget.AdapterView<?> p) { }
+        });
+
+        // Model đổi -> nạp lại Team
+        spinnerModel.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(android.widget.AdapterView<?> p, View v, int pos, long id) {
+                reloadTeams();
+            }
+            @Override public void onNothingSelected(android.widget.AdapterView<?> p) { }
+        });
+
+        // Team đổi -> nạp lại Dev
+        spinnerTeam.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(android.widget.AdapterView<?> p, View v, int pos, long id) {
+                reloadDevs();
             }
             @Override public void onNothingSelected(android.widget.AdapterView<?> p) { }
         });
@@ -92,7 +129,29 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Chi can nap Season khi mo app. Season xong -> tu nap Stage -> tu nap Model.
+        btnClearFilter.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Đặt lại các Spinner về lựa chọn đầu tiên ("%")
+                ignoreSeason = true;
+                ignoreStage = true;
+                spinnerSeasonFrom.setSelection(0);
+                spinnerSeasonTo.setSelection(0);
+                spinnerStage.setSelection(0);
+                spinnerModel.setSelection(0);
+                spinnerTeam.setSelection(0);
+                spinnerDev.setSelection(0);
+
+                cfmList.clear();
+                adapter.notifyDataSetChanged();
+                tvEmpty.setVisibility(View.GONE);
+                tvStatus.setText("Sẵn sàng.");
+                // Gọi chuỗi tải lại dữ liệu từ đầu
+                reloadStages();
+            }
+        });
+
+        // Chỉ cần nạp Seasons ban đầu. Sau đó chuỗi cascading sẽ tự động tải các spinner còn lại.
         new LoadSeasons().execute();
     }
 
@@ -105,21 +164,48 @@ public class MainActivity extends AppCompatActivity {
         btnRetrieve.setEnabled(!show);
     }
 
-    /** Nap lai Stage theo Season hien chon. */
+    /** Nap lai Stage theo Season range. */
     private void reloadStages() {
-        String season = spinnerSeason.getSelectedItem() != null ? spinnerSeason.getSelectedItem().toString() : "";
-        if (!season.isEmpty()) {
-            new LoadStages().execute(season);
+        String seasonFrom = spinnerSeasonFrom.getSelectedItem() != null ? spinnerSeasonFrom.getSelectedItem().toString() : "";
+        String seasonTo   = spinnerSeasonTo.getSelectedItem()   != null ? spinnerSeasonTo.getSelectedItem().toString()   : "";
+        if (!seasonFrom.isEmpty() || !seasonTo.isEmpty()) {
+            new LoadStages().execute(seasonFrom, seasonTo);
         }
     }
 
-    /** Nap lai Model & Style theo Season + Stage hien chon. */
+    /** Nap lai Model theo Season range + Stage. */
     private void reloadModels() {
-        String season = spinnerSeason.getSelectedItem() != null ? spinnerSeason.getSelectedItem().toString() : "";
-        String stage  = spinnerStage.getSelectedItem()  != null ? spinnerStage.getSelectedItem().toString()  : "";
-        if (!season.isEmpty()) {
-            new LoadModels().execute(season, stage);
+        String seasonFrom = spinnerSeasonFrom.getSelectedItem() != null ? spinnerSeasonFrom.getSelectedItem().toString() : "";
+        String seasonTo   = spinnerSeasonTo.getSelectedItem()   != null ? spinnerSeasonTo.getSelectedItem().toString()   : "";
+        String stage      = spinnerStage.getSelectedItem()      != null ? spinnerStage.getSelectedItem().toString()      : "";
+        if (!seasonFrom.isEmpty() || !seasonTo.isEmpty()) {
+            new LoadModels().execute(seasonFrom, seasonTo, stage);
         }
+    }
+
+    /** Nap lai Team theo các bộ lọc trước đó. */
+    private void reloadTeams() {
+        String seasonFrom = spinnerSeasonFrom.getSelectedItem() != null ? spinnerSeasonFrom.getSelectedItem().toString() : "";
+        String seasonTo   = spinnerSeasonTo.getSelectedItem()   != null ? spinnerSeasonTo.getSelectedItem().toString()   : "";
+        String stage      = spinnerStage.getSelectedItem()      != null ? spinnerStage.getSelectedItem().toString()      : "";
+        String model      = spinnerModel.getSelectedItem()      != null ? spinnerModel.getSelectedItem().toString()      : "";
+        if (model.contains(" / ")) {
+            model = model.split(" / ")[0].trim();
+        }
+        new LoadTeams().execute(seasonFrom, seasonTo, stage, model);
+    }
+
+    /** Nap lai Dev theo các bộ lọc trước đó. */
+    private void reloadDevs() {
+        String seasonFrom = spinnerSeasonFrom.getSelectedItem() != null ? spinnerSeasonFrom.getSelectedItem().toString() : "";
+        String seasonTo   = spinnerSeasonTo.getSelectedItem()   != null ? spinnerSeasonTo.getSelectedItem().toString()   : "";
+        String stage      = spinnerStage.getSelectedItem()      != null ? spinnerStage.getSelectedItem().toString()      : "";
+        String model      = spinnerModel.getSelectedItem()      != null ? spinnerModel.getSelectedItem().toString()      : "";
+        if (model.contains(" / ")) {
+            model = model.split(" / ")[0].trim();
+        }
+        String team       = spinnerTeam.getSelectedItem()       != null ? spinnerTeam.getSelectedItem().toString()       : "";
+        new LoadDevs().execute(seasonFrom, seasonTo, stage, model, team);
     }
 
     // ----- Menu khi chon 1 cardview -----
@@ -139,6 +225,7 @@ public class MainActivity extends AppCompatActivity {
                 it.putExtra("CFM_ID", item.cfmId);
                 it.putExtra("MODEL_NAME", item.modelName);
                 it.putExtra("STYLE_NO", item.styleNo);
+                it.putExtra("QTY_WORKING", item.qtyWorking);
                 startActivity(it);
             }
         });
@@ -161,6 +248,7 @@ public class MainActivity extends AppCompatActivity {
                 if (jsonStr == null) { error = "Khong ket noi duoc server (Season)."; return null; }
                 JSONArray arr = new JSONArray(jsonStr);
                 arraySeason.clear();
+                arraySeason.add("%");
                 for (int i = 0; i < arr.length(); i++) {
                     JSONObject c = arr.getJSONObject(i);
                     arraySeason.add(c.optString("SEASON", c.optString("VALUE", "")));
@@ -178,7 +266,8 @@ public class MainActivity extends AppCompatActivity {
             ignoreSeason = true;   // chan phat onItemSelected tu dong do setAdapter
             ArrayAdapter<String> ad = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_spinner_item, arraySeason);
             ad.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-            spinnerSeason.setAdapter(ad);
+            spinnerSeasonFrom.setAdapter(ad);
+            spinnerSeasonTo.setAdapter(ad);
             setStatus("San sang.");
             // Season da co -> nap Stage cho lua chon mac dinh
             reloadStages();
@@ -191,14 +280,18 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected Void doInBackground(String... params) {
             try {
-                String season = params.length > 0 ? params[0] : "";
+                String seasonFrom = params.length > 0 ? params[0] : "";
+                String seasonTo   = params.length > 1 ? params[1] : "";
                 HttpHandler sh = new HttpHandler();
-                String url = Config.GET_STAGES + "?season=" + HttpHandler.enc(season);
+                String url = Config.GET_STAGES 
+                        + "?season_from=" + HttpHandler.enc(seasonFrom)
+                        + "&season_to="   + HttpHandler.enc(seasonTo);
                 Log.d("Debug", "Stages URL: " + url);
                 String jsonStr = sh.makeServiceCall(url);
                 if (jsonStr == null) { error = "Khong ket noi duoc server (Stage)."; return null; }
                 JSONArray arr = new JSONArray(jsonStr);
                 arrayStage.clear();
+                arrayStage.add("%");
                 for (int i = 0; i < arr.length(); i++) {
                     JSONObject c = arr.getJSONObject(i);
                     arrayStage.add(c.optString("CURRENT_STAGE", c.optString("VALUE", "")));
@@ -228,17 +321,20 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected Void doInBackground(String... params) {
             try {
-                String season = params.length > 0 ? params[0] : "";
-                String stage  = params.length > 1 ? params[1] : "";
+                String seasonFrom = params.length > 0 ? params[0] : "";
+                String seasonTo   = params.length > 1 ? params[1] : "";
+                String stage      = params.length > 2 ? params[2] : "";
                 HttpHandler sh = new HttpHandler();
                 String url = Config.GET_MODELS
-                        + "?season=" + HttpHandler.enc(season)
-                        + "&stage="  + HttpHandler.enc(stage);
+                        + "?season_from=" + HttpHandler.enc(seasonFrom)
+                        + "&season_to="   + HttpHandler.enc(seasonTo)
+                        + "&stage="       + HttpHandler.enc(stage);
                 Log.d("Debug", "Models URL: " + url);
                 String jsonStr = sh.makeServiceCall(url);
                 if (jsonStr == null) { error = "Khong ket noi duoc server (Model)."; return null; }
                 JSONArray arr = new JSONArray(jsonStr);
                 arrayModel.clear();
+                arrayModel.add("%");
                 for (int i = 0; i < arr.length(); i++) {
                     JSONObject c = arr.getJSONObject(i);
                     String model = c.optString("MODEL_NAME", "");
@@ -258,8 +354,99 @@ public class MainActivity extends AppCompatActivity {
             ArrayAdapter<String> ad = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_spinner_item, arrayModel);
             ad.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             spinnerModel.setAdapter(ad);
+            // Model da co -> nap tiep Team
+            reloadTeams();
         }
     }
+
+    private class LoadTeams extends AsyncTask<String, Void, Void> {
+        private String error = null;
+
+        @Override
+        protected Void doInBackground(String... params) {
+            try {
+                String seasonFrom = params.length > 0 ? params[0] : "";
+                String seasonTo   = params.length > 1 ? params[1] : "";
+                String stage      = params.length > 2 ? params[2] : "";
+                String model      = params.length > 3 ? params[3] : "";
+                HttpHandler sh = new HttpHandler();
+                String url = Config.GET_TEAMS
+                        + "?season_from=" + HttpHandler.enc(seasonFrom)
+                        + "&season_to="   + HttpHandler.enc(seasonTo)
+                        + "&stage="       + HttpHandler.enc(stage)
+                        + "&model="       + HttpHandler.enc(model);
+                Log.d("Debug", "Teams URL: " + url);
+                String jsonStr = sh.makeServiceCall(url);
+                if (jsonStr == null) { error = "Khong ket noi duoc server (Team)."; return null; }
+                JSONArray arr = new JSONArray(jsonStr);
+                arrayTeam.clear();
+                arrayTeam.add("%"); // Thêm lựa chọn Tất cả
+                for (int i = 0; i < arr.length(); i++) {
+                    JSONObject c = arr.getJSONObject(i);
+                    arrayTeam.add(c.optString("VS_TEAM", c.optString("VALUE", "")));
+                }
+            } catch (Exception e) {
+                error = "Loi doc du lieu Team: " + e.toString();
+                Log.e("LoadTeams", error);
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void v) {
+            if (error != null) { Toast.makeText(MainActivity.this, error, Toast.LENGTH_LONG).show(); return; }
+            ArrayAdapter<String> ad = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_spinner_item, arrayTeam);
+            ad.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            spinnerTeam.setAdapter(ad);
+            // Team da co -> nap tiep Dev
+            reloadDevs();
+        }
+    }
+
+    private class LoadDevs extends AsyncTask<String, Void, Void> {
+        private String error = null;
+
+        @Override
+        protected Void doInBackground(String... params) {
+            try {
+                String seasonFrom = params.length > 0 ? params[0] : "";
+                String seasonTo   = params.length > 1 ? params[1] : "";
+                String stage      = params.length > 2 ? params[2] : "";
+                String model      = params.length > 3 ? params[3] : "";
+                String team       = params.length > 4 ? params[4] : "";
+                HttpHandler sh = new HttpHandler();
+                String url = Config.GET_DEVS
+                        + "?season_from=" + HttpHandler.enc(seasonFrom)
+                        + "&season_to="   + HttpHandler.enc(seasonTo)
+                        + "&stage="       + HttpHandler.enc(stage)
+                        + "&model="       + HttpHandler.enc(model)
+                        + "&team="        + HttpHandler.enc(team);
+                Log.d("Debug", "Devs URL: " + url);
+                String jsonStr = sh.makeServiceCall(url);
+                if (jsonStr == null) { error = "Khong ket noi duoc server (Dev)."; return null; }
+                JSONArray arr = new JSONArray(jsonStr);
+                arrayDev.clear();
+                arrayDev.add("%"); // Thêm lựa chọn Tất cả
+                for (int i = 0; i < arr.length(); i++) {
+                    JSONObject c = arr.getJSONObject(i);
+                    arrayDev.add(c.optString("VS_DEVELOPER", c.optString("VALUE", "")));
+                }
+            } catch (Exception e) {
+                error = "Loi doc du lieu Dev: " + e.toString();
+                Log.e("LoadDevs", error);
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void v) {
+            if (error != null) { Toast.makeText(MainActivity.this, error, Toast.LENGTH_LONG).show(); return; }
+            ArrayAdapter<String> ad = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_spinner_item, arrayDev);
+            ad.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            spinnerDev.setAdapter(ad);
+        }
+    }
+
 
     private class RetrieveCfm extends AsyncTask<Void, Void, Void> {
         private String error = null;
@@ -275,15 +462,21 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected Void doInBackground(Void... v) {
             try {
-                String season = spinnerSeason.getSelectedItem() != null ? spinnerSeason.getSelectedItem().toString() : "";
+                String seasonFrom = spinnerSeasonFrom.getSelectedItem() != null ? spinnerSeasonFrom.getSelectedItem().toString() : "";
+                String seasonTo = spinnerSeasonTo.getSelectedItem() != null ? spinnerSeasonTo.getSelectedItem().toString() : "";
                 String stage  = spinnerStage.getSelectedItem()  != null ? spinnerStage.getSelectedItem().toString()  : "";
                 String model  = spinnerModel.getSelectedItem()  != null ? spinnerModel.getSelectedItem().toString()  : "";
+                String team  = spinnerTeam.getSelectedItem()  != null ? spinnerTeam.getSelectedItem().toString()  : "";
+                String dev = spinnerDev.getSelectedItem()  != null ? spinnerDev.getSelectedItem().toString()  : "";
 
                 HttpHandler sh = new HttpHandler();
                 String url = Config.GET_CFM_LIST
-                        + "?season=" + HttpHandler.enc(season)
-                        + "&stage="  + HttpHandler.enc(stage)
-                        + "&model="  + HttpHandler.enc(model);
+                        + "?season_from=" + HttpHandler.enc(seasonFrom)
+                        + "&season_to="   + HttpHandler.enc(seasonTo)
+                        + "&stage="       + HttpHandler.enc(stage)
+                        + "&model="       + HttpHandler.enc(model)
+                        + "&team="        + HttpHandler.enc(team)
+                        + "&developer="   + HttpHandler.enc(dev);
                 Log.d("Debug", "CFM list URL: " + url);
 
                 String jsonStr = sh.makeServiceCall(url);
