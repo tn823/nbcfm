@@ -38,14 +38,22 @@ public class CfmAdapter extends RecyclerView.Adapter<CfmAdapter.VH> {
         final CfmItem it = data.get(position);
 
         h.tvCfmId.setText("CFM ID: " + it.cfmId);
-        h.tvHeader.setText(it.modelName + "  •  " + it.styleNo);
-        h.tvSeason.setText(label("Season", it.season) + "    " + label("Brand", it.brandCode));
-        h.tvStage.setText(label("Stage", it.currentStage) + "    " + label("Gender", it.gender));
+        
+        // Bind highlighted fields
+        h.tvSeasonVal.setText(it.season.isEmpty() ? "-" : it.season);
+        h.tvModelVal.setText(it.modelName.isEmpty() ? "-" : it.modelName);
+        h.tvStageVal.setText(it.currentStage.isEmpty() ? "-" : it.currentStage);
+        h.tvStyleVal.setText(it.styleNo.isEmpty() ? "-" : it.styleNo);
+        h.tvQtyVal.setText(it.qtyWorking.isEmpty() ? "-" : it.qtyWorking);
+
+        // Bind secondary details
+        h.tvSeason.setText(label("Brand", it.brandCode));
+        h.tvStage.setText(label("Gender", it.gender));
         h.tvLast.setText(label("Last", it.lastName) + "    " + label("TP Date", it.tpDate));
         h.tvMold.setText(label("Mold New", it.moldNew) + "    " + label("Mold Exist", it.moldExist));
         h.tvDev.setText(label("VS Dev", it.vsDeveloper) + "    " + label("Site Dev", it.siteDeveloper));
         h.tvSpec.setText(label("Spec Issue", it.specIssue) + "    " + label("Mtl Arrived", it.mtlArrived));
-        h.tvQty.setText(label("Qty Working", it.qtyWorking) + "    " + label("Qty Shipping", it.qtyShipping));
+        h.tvQty.setText(label("Qty Shipping", it.qtyShipping));
 
         h.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -65,19 +73,25 @@ public class CfmAdapter extends RecyclerView.Adapter<CfmAdapter.VH> {
     }
 
     static class VH extends RecyclerView.ViewHolder {
-        TextView tvCfmId, tvHeader, tvSeason, tvStage, tvLast, tvMold, tvDev, tvSpec, tvQty;
+        TextView tvCfmId, tvSeasonVal, tvModelVal, tvStageVal, tvStyleVal, tvQtyVal;
+        TextView tvSeason, tvStage, tvLast, tvMold, tvDev, tvSpec, tvQty;
 
         VH(@NonNull View v) {
             super(v);
-            tvCfmId  = v.findViewById(R.id.tvCfmId);
-            tvHeader = v.findViewById(R.id.tvHeader);
-            tvSeason = v.findViewById(R.id.tvSeason);
-            tvStage  = v.findViewById(R.id.tvStage);
-            tvLast   = v.findViewById(R.id.tvLast);
-            tvMold   = v.findViewById(R.id.tvMold);
-            tvDev    = v.findViewById(R.id.tvDev);
-            tvSpec   = v.findViewById(R.id.tvSpec);
-            tvQty    = v.findViewById(R.id.tvQty);
+            tvCfmId     = v.findViewById(R.id.tvCfmId);
+            tvSeasonVal = v.findViewById(R.id.tvSeasonVal);
+            tvModelVal  = v.findViewById(R.id.tvModelVal);
+            tvStageVal  = v.findViewById(R.id.tvStageVal);
+            tvStyleVal  = v.findViewById(R.id.tvStyleVal);
+            tvQtyVal    = v.findViewById(R.id.tvQtyVal);
+            
+            tvSeason    = v.findViewById(R.id.tvSeason);
+            tvStage     = v.findViewById(R.id.tvStage);
+            tvLast      = v.findViewById(R.id.tvLast);
+            tvMold      = v.findViewById(R.id.tvMold);
+            tvDev       = v.findViewById(R.id.tvDev);
+            tvSpec      = v.findViewById(R.id.tvSpec);
+            tvQty       = v.findViewById(R.id.tvQty);
         }
     }
 }

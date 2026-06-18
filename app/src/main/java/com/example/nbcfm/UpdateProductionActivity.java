@@ -19,12 +19,15 @@ import org.json.JSONObject;
 
 /**
  * Form cập nhật sản xuất: chọn Process (ASS/STT/CUT/PRSTT) và nhập QTY (số).
+ * Hiển thị số lượng đã tồn tại trong tracking so với QTY_WORKING và validate.
  */
 public class UpdateProductionActivity extends AppCompatActivity {
 
     private String cfmId;
+    private String qtyWorking = "0";
+    private JSONObject planData = null;
 
-    private TextView tvTitle, tvStatus;
+    private TextView tvTitle, tvStatus, tvProgress;
     private Spinner spinnerProcess;
     private EditText etQty;
     private Button btnSave;
@@ -40,9 +43,15 @@ public class UpdateProductionActivity extends AppCompatActivity {
         cfmId = getIntent().getStringExtra("CFM_ID");
         String model = getIntent().getStringExtra("MODEL_NAME");
         String style = getIntent().getStringExtra("STYLE_NO");
+        
+        String qtyWorkingExtra = getIntent().getStringExtra("QTY_WORKING");
+        if (qtyWorkingExtra != null && !qtyWorkingExtra.trim().isEmpty()) {
+            qtyWorking = qtyWorkingExtra.trim();
+        }
 
         tvTitle        = findViewById(R.id.tvTitle);
         tvStatus       = findViewById(R.id.tvStatus);
+        tvProgress     = findViewById(R.id.tvProgress);
         spinnerProcess = findViewById(R.id.spinnerProcess);
         etQty          = findViewById(R.id.etQty);
         btnSave        = findViewById(R.id.btnSave);
@@ -55,6 +64,17 @@ public class UpdateProductionActivity extends AppCompatActivity {
         ad.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerProcess.setAdapter(ad);
 
+        spinnerProcess.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) {
+                updateProgressUI();
+            }
+
+            @Override
+            public void onNothingSelected(android.widget.AdapterView<?> parent) {
+            }
+        });
+
         btnSave.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View v) {
                 String qty = etQty.getText().toString().trim();
@@ -62,19 +82,120 @@ public class UpdateProductionActivity extends AppCompatActivity {
                     Toast.makeText(UpdateProductionActivity.this, "Vui lòng nhập QTY.", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                try { Integer.parseInt(qty); }
-                catch (Exception e) {
+                int inputQty = 0;
+                try {
+                    inputQty = Integer.parseInt(qty);
+                } catch (Exception e) {
                     Toast.makeText(UpdateProductionActivity.this, "QTY phải là số.", Toast.LENGTH_SHORT).show();
                     return;
                 }
+                
+                if (inputQty <= 0) {
+                    Toast.makeText(UpdateProductionActivity.this, "QTY phải lớn hơn 0.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                
+                // Validate against qtyWorking
+                int actual = getAccumulatedQty();
+                int targetLimit = 0;
+                try {
+                    targetLimit = Integer.parseInt(qtyWorking);
+                } catch (Exception ignored) {
+                }
+                
+                if (targetLimit > 0 && (actual + inputQty) > targetLimit) {
+                    Toast.makeText(UpdateProductionActivity.this, 
+                        "Lỗi: Tổng sản lượng (" + (actual + inputQty) + ") vượt quá Qty Working (" + targetLimit + ").", 
+                        Toast.LENGTH_LONG).show();
+                    return;
+                }
+                
                 new SaveProduction().execute();
             }
         });
+
+        // Load existing tracking quantities on startup
+        new LoadPlanData().execute();
+    }
+
+    private int getAccumulatedQty() {
+        String proc = spinnerProcess.getSelectedItem() != null ? spinnerProcess.getSelectedItem().toString() : "";
+        if (proc.isEmpty() || planData == null) return 0;
+        
+        String actualStr = planData.optString(proc + "_ACTUAL", "");
+        if (actualStr.isEmpty()) actualStr = planData.optString(proc + "_QTY", "");
+        if (actualStr.isEmpty()) actualStr = planData.optString(proc + "_PROD", "");
+        
+        if (!actualStr.isEmpty() && !actualStr.equalsIgnoreCase("null")) {
+            try {
+                return (int) Double.parseDouble(actualStr);
+            } catch (Exception e) {
+                return 0;
+            }
+        }
+        return 0;
+    }
+
+    private void updateProgressUI() {
+        if (tvProgress == null) return;
+        int actual = getAccumulatedQty();
+        tvProgress.setText("QTY WORKING: " + actual + " / " + qtyWorking);
     }
 
     private void showLoading(boolean show) {
         progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
         btnSave.setEnabled(!show);
+    }
+
+    // ==================== AsyncTasks ====================
+
+    private class LoadPlanData extends AsyncTask<Void, Void, JSONObject> {
+        private String error = null;
+
+        @Override
+        protected void onPreExecute() {
+            showLoading(true);
+            tvStatus.setText("Đang tải dữ liệu tích lũy...");
+        }
+
+        @Override
+        protected JSONObject doInBackground(Void... v) {
+            try {
+                HttpHandler sh = new HttpHandler();
+                String url = Config.GET_CFM_PLAN + "?cfmid=" + HttpHandler.enc(cfmId);
+                Log.d("Debug", "LoadPlanData URL: " + url);
+                String jsonStr = sh.makeServiceCall(url);
+                if (jsonStr == null) {
+                    error = "Không kết nối được server.";
+                    return null;
+                }
+                jsonStr = jsonStr.trim();
+                if (jsonStr.isEmpty() || jsonStr.equals("[]")) return null;
+                if (jsonStr.startsWith("[")) {
+                    org.json.JSONArray a = new org.json.JSONArray(jsonStr);
+                    if (a.length() == 0) return null;
+                    return a.getJSONObject(0);
+                }
+                return new JSONObject(jsonStr);
+            } catch (Exception e) {
+                error = "Lỗi tải dữ liệu: " + e.toString();
+                Log.e("LoadPlanData", error);
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(JSONObject o) {
+            showLoading(false);
+            if (error != null) {
+                tvStatus.setText(error);
+                updateProgressUI();
+                return;
+            }
+            planData = o;
+            tvStatus.setText("Đã tải dữ liệu tích lũy.");
+            updateProgressUI();
+        }
     }
 
     private class SaveProduction extends AsyncTask<Void, Void, Boolean> {
@@ -112,6 +233,7 @@ public class UpdateProductionActivity extends AppCompatActivity {
                 Toast.makeText(UpdateProductionActivity.this, "Lưu sản xuất thành công.", Toast.LENGTH_LONG).show();
                 tvStatus.setText("Đã lưu thành công.");
                 etQty.setText("");
+                new LoadPlanData().execute(); // Reload progress after saving
             } else {
                 Toast.makeText(UpdateProductionActivity.this, "Lưu thất bại. Vui lòng thử lại.", Toast.LENGTH_LONG).show();
                 tvStatus.setText("Lưu thất bại.");
