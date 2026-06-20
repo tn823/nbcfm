@@ -28,6 +28,13 @@ public class Config {
     // POST cập nhật sản xuất
     public static final String SAVE_CFM_PROD    = BASE_URL + "savecfmproduction";
 
+    // POST cập nhật tất cả (Kế hoạch & Sản xuất hàng loạt)
+    public static final String SAVE_CFM_ALL     = BASE_URL + "savecfmall";
+
+    // API Lịch sử sản xuất
+    public static final String GET_PROD_HISTORY    = BASE_URL + "getcfmproduction_history";
+    public static final String SAVE_PROD_HISTORY   = BASE_URL + "savecfmproduction_history";
+
     public static final String GET_TEAMS   = BASE_URL + "getcfmteams";
     public static final String GET_DEVS    = BASE_URL + "getcfmdevs";
 

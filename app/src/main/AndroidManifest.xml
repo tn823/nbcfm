@@ -17,6 +17,9 @@
         android:theme="@style/Theme.Nbcfm"
         tools:targetApi="31">
         <activity
+            android:name=".UpdateCfmActivity"
+            android:exported="false" />
+        <activity
             android:name=".UpdateProductionActivity"
             android:exported="false" />
         <activity

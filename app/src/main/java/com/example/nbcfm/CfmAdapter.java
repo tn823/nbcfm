@@ -37,7 +37,19 @@ public class CfmAdapter extends RecyclerView.Adapter<CfmAdapter.VH> {
     public void onBindViewHolder(@NonNull VH h, int position) {
         final CfmItem it = data.get(position);
 
-        h.tvCfmId.setText("CFM ID: " + it.cfmId);
+        // --- BẮT ĐẦU PHẦN HIGHLIGHT ---
+        // Ép kiểu root view sang CardView để đổi màu nền thẻ
+        androidx.cardview.widget.CardView cardView = (androidx.cardview.widget.CardView) h.itemView;
+        if (it.hasPlan == 1) {
+            // Đổi sang màu hồng/đỏ nhạt (#FFEBEF) rất hài hòa với tông màu đỏ (nb_red) chủ đạo của app
+            cardView.setCardBackgroundColor(android.graphics.Color.parseColor("#FFEBEF"));
+            h.tvCfmId.setText("CFM ID: " + it.cfmId + " (Has PLan)");
+        } else {
+            // Trả về màu trắng mặc định cho các dòng thông thường
+            cardView.setCardBackgroundColor(android.graphics.Color.parseColor("#FFFFFF"));
+            h.tvCfmId.setText("CFM ID: " + it.cfmId);
+        }
+        // --- KẾT THÚC PHẦN HIGHLIGHT ---
         
         // Bind highlighted fields
         h.tvSeasonVal.setText(it.season.isEmpty() ? "-" : it.season);

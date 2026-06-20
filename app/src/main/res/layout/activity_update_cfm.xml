@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F8F9FA"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Cập nhật Tiến độ CFM"
+            android:textColor="@color/nb_red"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:paddingBottom="12dp" />
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="2dp"
+            app:cardUseCompatPadding="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <!-- ================== PROCESS ASS ================== -->
+                <TextView style="@style/ProcLabel" android:text="ASS (ASSEMBLY)" />
+                <LinearLayout style="@style/DateRow">
+                    <TextView android:id="@+id/tvAssStart" style="@style/DateBox" android:hint="Ngày bắt đầu" />
+                    <TextView android:id="@+id/tvAssEnd"   style="@style/DateBox" android:hint="Ngày kết thúc" />
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginTop="6dp"
+                    android:layout_marginBottom="12dp">
+                    <TextView
+                        android:id="@+id/tvAssProgress"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Tích lũy: 0 / 0"
+                        android:textColor="@color/textSecondary"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+                    <!-- Nút Bút Chì Hiệu Chỉnh -->
+                    <ImageButton
+                        android:id="@+id/btnAssEdit"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@android:drawable/ic_menu_edit"
+                        android:background="?android:attr/selectableItemBackgroundBorderless"
+                        android:layout_marginRight="8dp"
+                        android:tint="@color/nb_red" />
+                    <EditText
+                        android:id="@+id/etAssQty"
+                        android:layout_width="120dp"
+                        android:layout_height="36dp"
+                        android:background="@drawable/edit_bg"
+                        android:hint="+ Nhập thêm Qty"
+                        android:inputType="number"
+                        android:paddingHorizontal="10dp"
+                        android:textSize="13sp" />
+                </LinearLayout>
+
+                <!-- ================== PROCESS STT ================== -->
+                <TextView style="@style/ProcLabel" android:text="STT (STITCHING)" />
+                <LinearLayout style="@style/DateRow">
+                    <TextView android:id="@+id/tvSttStart" style="@style/DateBox" android:hint="Ngày bắt đầu" />
+                    <TextView android:id="@+id/tvSttEnd"   style="@style/DateBox" android:hint="Ngày kết thúc" />
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginTop="6dp"
+                    android:layout_marginBottom="12dp">
+                    <TextView
+                        android:id="@+id/tvSttProgress"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Tích lũy: 0 / 0"
+                        android:textColor="@color/textSecondary"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+                    <ImageButton
+                        android:id="@+id/btnSttEdit"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@android:drawable/ic_menu_edit"
+                        android:background="?android:attr/selectableItemBackgroundBorderless"
+                        android:layout_marginRight="8dp"
+                        android:tint="@color/nb_red" />
+                    <EditText
+                        android:id="@+id/etSttQty"
+                        android:layout_width="120dp"
+                        android:layout_height="40dp"
+                        android:background="@drawable/edit_bg"
+                        android:hint="+ Nhập thêm Qty"
+                        android:inputType="number"
+                        android:paddingHorizontal="10dp"
+                        android:textSize="13sp" />
+                </LinearLayout>
+
+                <!-- ================== PROCESS PRSTT ================== -->
+                <TextView style="@style/ProcLabel" android:text="PRSTT (PRE-STITCHING)" />
+                <LinearLayout style="@style/DateRow">
+                    <TextView android:id="@+id/tvPrsttStart" style="@style/DateBox" android:hint="Ngày bắt đầu" />
+                    <TextView android:id="@+id/tvPrsttEnd"   style="@style/DateBox" android:hint="Ngày kết thúc" />
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginTop="6dp"
+                    android:layout_marginBottom="12dp">
+                    <TextView
+                        android:id="@+id/tvPrsttProgress"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Tích lũy: 0 / 0"
+                        android:textColor="@color/textSecondary"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+                    <ImageButton
+                        android:id="@+id/btnPrsttEdit"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@android:drawable/ic_menu_edit"
+                        android:background="?android:attr/selectableItemBackgroundBorderless"
+                        android:layout_marginRight="8dp"
+                        android:tint="@color/nb_red" />
+                    <EditText
+                        android:id="@+id/etPrsttQty"
+                        android:layout_width="120dp"
+                        android:layout_height="40dp"
+                        android:background="@drawable/edit_bg"
+                        android:hint="+ Nhập thêm Qty"
+                        android:inputType="number"
+                        android:paddingHorizontal="10dp"
+                        android:textSize="13sp" />
+                </LinearLayout>
+
+                <!-- ================== PROCESS CUT ================== -->
+                <TextView style="@style/ProcLabel" android:text="CUT (CUTTING)" />
+                <LinearLayout style="@style/DateRow">
+                    <TextView android:id="@+id/tvCutStart" style="@style/DateBox" android:hint="Ngày bắt đầu" />
+                    <TextView android:id="@+id/tvCutEnd"   style="@style/DateBox" android:hint="Ngày kết thúc" />
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginTop="6dp"
+                    android:layout_marginBottom="6dp">
+                    <TextView
+                        android:id="@+id/tvCutProgress"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Tích lũy: 0 / 0"
+                        android:textColor="@color/textSecondary"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+                    <ImageButton
+                        android:id="@+id/btnCutEdit"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@android:drawable/ic_menu_edit"
+                        android:background="?android:attr/selectableItemBackgroundBorderless"
+                        android:layout_marginRight="8dp"
+                        android:tint="@color/nb_red" />
+                    <EditText
+                        android:id="@+id/etCutQty"
+                        android:layout_width="120dp"
+                        android:layout_height="40dp"
+                        android:background="@drawable/edit_bg"
+                        android:hint="+ Nhập thêm Qty"
+                        android:inputType="number"
+                        android:paddingHorizontal="10dp"
+                        android:textSize="13sp" />
+                </LinearLayout>
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <TextView
+            android:id="@+id/tvStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/textSecondary"
+            android:textSize="13sp"
+            android:paddingTop="8dp"
+            android:paddingBottom="4dp" />
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            style="?android:attr/progressBarStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone" />
+
+        <Button
+            android:id="@+id/btnSave"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="SAVE ALL"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/btn_red" />
+
+    </LinearLayout>
+</ScrollView>

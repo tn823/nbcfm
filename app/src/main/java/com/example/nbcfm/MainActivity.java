@@ -210,27 +210,12 @@ public class MainActivity extends AppCompatActivity {
 
     // ----- Menu khi chon 1 cardview -----
     private void showItemMenu(final CfmItem item) {
-        final CharSequence[] options = {"Cap nhat ke hoach", "Cap nhat san xuat"};
-        AlertDialog.Builder b = new AlertDialog.Builder(this);
-        b.setTitle("CFM ID: " + item.cfmId);
-        b.setItems(options, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                Intent it;
-                if (which == 0) {
-                    it = new Intent(MainActivity.this, UpdatePlanActivity.class);
-                } else {
-                    it = new Intent(MainActivity.this, UpdateProductionActivity.class);
-                }
-                it.putExtra("CFM_ID", item.cfmId);
-                it.putExtra("MODEL_NAME", item.modelName);
-                it.putExtra("STYLE_NO", item.styleNo);
-                it.putExtra("QTY_WORKING", item.qtyWorking);
-                startActivity(it);
-            }
-        });
-        b.setNegativeButton("Huy", null);
-        b.show();
+        Intent it = new Intent(MainActivity.this, UpdateCfmActivity.class);
+        it.putExtra("CFM_ID", item.cfmId);
+        it.putExtra("MODEL_NAME", item.modelName);
+        it.putExtra("STYLE_NO", item.styleNo);
+        it.putExtra("QTY_WORKING", item.qtyWorking);
+        startActivity(it);
     }
 
     // ========================= AsyncTasks =========================
@@ -486,6 +471,14 @@ public class MainActivity extends AppCompatActivity {
                 for (int i = 0; i < arr.length(); i++) {
                     result.add(CfmItem.fromJson(arr.getJSONObject(i)));
                 }
+                // --- BẮT ĐẦU THÊM ĐOẠN CODE SẮP XẾP DƯỚI ĐÂY ---
+                // Sắp xếp đưa các CFM_ID có Plan (hasPlan = 1) lên đầu danh sách
+                java.util.Collections.sort(result, new java.util.Comparator<CfmItem>() {
+                    @Override
+                    public int compare(CfmItem o1, CfmItem o2) {
+                        return Integer.compare(o2.hasPlan, o1.hasPlan); // Sắp xếp giảm dần: 1 lên trước, 0 xuống sau
+                    }
+                });
             } catch (Exception e) {
                 error = "Loi xu ly du lieu: " + e.toString();
                 Log.e("RetrieveCfm", error);
@@ -511,7 +504,7 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(MainActivity.this, "Khong tim thay du lieu CFM.", Toast.LENGTH_LONG).show();
             } else {
                 tvEmpty.setVisibility(View.GONE);
-                setStatus("Tim thay " + cfmList.size() + " CFM.");
+                setStatus("Total: " + cfmList.size() + " CFM.");
                 Toast.makeText(MainActivity.this, "Da tai " + cfmList.size() + " CFM.", Toast.LENGTH_SHORT).show();
             }
         }
