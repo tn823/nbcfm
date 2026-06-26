@@ -17,6 +17,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import com.facebook.shimmer.ShimmerFrameLayout;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -28,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
     private Spinner spinnerSeasonFrom, spinnerSeasonTo, spinnerStage, spinnerModel, spinnerTeam, spinnerDev;
     private Button btnRetrieve, btnClearFilter;
     private RecyclerView recyclerView;
+    private ShimmerFrameLayout shimmerViewContainer;
     private ProgressBar progressBar;
     private TextView tvStatus, tvEmpty;
 
@@ -58,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
         btnRetrieve   = findViewById(R.id.btnRetrieve);
         btnClearFilter = findViewById(R.id.btnClearFilter);
         recyclerView  = findViewById(R.id.recyclerView);
+        shimmerViewContainer = findViewById(R.id.shimmerViewContainer);
         progressBar   = findViewById(R.id.progressBar);
         tvStatus      = findViewById(R.id.tvStatus);
         tvEmpty       = findViewById(R.id.tvEmpty);
@@ -162,6 +165,17 @@ public class MainActivity extends AppCompatActivity {
     private void showLoading(boolean show) {
         progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
         btnRetrieve.setEnabled(!show);
+        if (shimmerViewContainer != null) {
+            if (show) {
+                shimmerViewContainer.setVisibility(View.VISIBLE);
+                shimmerViewContainer.startShimmer();
+                recyclerView.setVisibility(View.GONE);
+            } else {
+                shimmerViewContainer.stopShimmer();
+                shimmerViewContainer.setVisibility(View.GONE);
+                recyclerView.setVisibility(View.VISIBLE);
+            }
+        }
     }
 
     /** Nap lai Stage theo Season range. */
@@ -471,8 +485,6 @@ public class MainActivity extends AppCompatActivity {
                 for (int i = 0; i < arr.length(); i++) {
                     result.add(CfmItem.fromJson(arr.getJSONObject(i)));
                 }
-                // --- BẮT ĐẦU THÊM ĐOẠN CODE SẮP XẾP DƯỚI ĐÂY ---
-                // Sắp xếp đưa các CFM_ID có Plan (hasPlan = 1) lên đầu danh sách
                 java.util.Collections.sort(result, new java.util.Comparator<CfmItem>() {
                     @Override
                     public int compare(CfmItem o1, CfmItem o2) {
@@ -497,6 +509,7 @@ public class MainActivity extends AppCompatActivity {
             cfmList.clear();
             cfmList.addAll(result);
             adapter.notifyDataSetChanged();
+            recyclerView.scrollToPosition(0);
 
             if (cfmList.isEmpty()) {
                 tvEmpty.setVisibility(View.VISIBLE);

@@ -176,14 +176,131 @@
             </LinearLayout>
         </LinearLayout>
 
-        <!-- Secondary Information Details (compact, lighter text) -->
-        <TextView android:id="@+id/tvSeason" style="@style/CardLine" />
-        <TextView android:id="@+id/tvStage"  style="@style/CardLine" />
-        <TextView android:id="@+id/tvLast"   style="@style/CardLine" />
-        <TextView android:id="@+id/tvMold"   style="@style/CardLine" />
-        <TextView android:id="@+id/tvDev"    style="@style/CardLine" />
-        <TextView android:id="@+id/tvSpec"   style="@style/CardLine" />
-        <TextView android:id="@+id/tvQty"    style="@style/CardLine" />
+        <!-- Secondary Information Details (compact 2-column grid layout) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="4dp">
+
+            <!-- Row 1: Brand & Gender -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:weightSum="2">
+                <TextView
+                    android:id="@+id/tvBrand"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    style="@style/CardLine" />
+                <TextView
+                    android:id="@+id/tvGender"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    style="@style/CardLine" />
+            </LinearLayout>
+
+            <!-- Row 2: Last & TP Date -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:weightSum="2">
+                <TextView
+                    android:id="@+id/tvLast"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    style="@style/CardLine" />
+                <TextView
+                    android:id="@+id/tvTpDate"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    style="@style/CardLine" />
+            </LinearLayout>
+
+            <!-- Row 3: Mold New & Mold Exist -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:weightSum="2">
+                <TextView
+                    android:id="@+id/tvMoldNew"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    style="@style/CardLine" />
+                <TextView
+                    android:id="@+id/tvMoldExist"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    style="@style/CardLine" />
+            </LinearLayout>
+
+            <!-- Row 4: VS Dev & Site Dev -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:weightSum="2">
+                <TextView
+                    android:id="@+id/tvVsDev"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    style="@style/CardLine" />
+                <TextView
+                    android:id="@+id/tvSiteDev"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    style="@style/CardLine" />
+            </LinearLayout>
+
+            <!-- Row 5: Spec Issue & Mtl Arrived -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:weightSum="2">
+                <TextView
+                    android:id="@+id/tvSpecIssue"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    style="@style/CardLine" />
+                <TextView
+                    android:id="@+id/tvMtlArrived"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    style="@style/CardLine" />
+            </LinearLayout>
+
+            <!-- Row 6: Qty Shipping -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:weightSum="2">
+                <TextView
+                    android:id="@+id/tvQtyShipping"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    style="@style/CardLine" />
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_weight="1" />
+            </LinearLayout>
+        </LinearLayout>
 
     </LinearLayout>
 </androidx.cardview.widget.CardView>

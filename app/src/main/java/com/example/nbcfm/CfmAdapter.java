@@ -1,6 +1,11 @@
 package com.example.nbcfm;
 
 import android.content.Context;
+import android.graphics.Typeface;
+import android.text.Spannable;
+import android.text.SpannableStringBuilder;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.StyleSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -58,14 +63,18 @@ public class CfmAdapter extends RecyclerView.Adapter<CfmAdapter.VH> {
         h.tvStyleVal.setText(it.styleNo.isEmpty() ? "-" : it.styleNo);
         h.tvQtyVal.setText(it.qtyWorking.isEmpty() ? "-" : it.qtyWorking);
 
-        // Bind secondary details
-        h.tvSeason.setText(label("Brand", it.brandCode));
-        h.tvStage.setText(label("Gender", it.gender));
-        h.tvLast.setText(label("Last", it.lastName) + "    " + label("TP Date", it.tpDate));
-        h.tvMold.setText(label("Mold New", it.moldNew) + "    " + label("Mold Exist", it.moldExist));
-        h.tvDev.setText(label("VS Dev", it.vsDeveloper) + "    " + label("Site Dev", it.siteDeveloper));
-        h.tvSpec.setText(label("Spec Issue", it.specIssue) + "    " + label("Mtl Arrived", it.mtlArrived));
-        h.tvQty.setText(label("Qty Shipping", it.qtyShipping));
+        // Bind secondary details in a clean 2-column grid
+        h.tvBrand.setText(formatField("Brand", it.brandCode));
+        h.tvGender.setText(formatField("Gender", it.gender));
+        h.tvLast.setText(formatField("Last", it.lastName));
+        h.tvTpDate.setText(formatField("TP Date", it.tpDate));
+        h.tvMoldNew.setText(formatField("Mold New", it.moldNew));
+        h.tvMoldExist.setText(formatField("Mold Exist", it.moldExist));
+        h.tvVsDev.setText(formatField("VS Dev", it.vsDeveloper));
+        h.tvSiteDev.setText(formatField("Site Dev", it.siteDeveloper));
+        h.tvSpecIssue.setText(formatField("Spec Issue", it.specIssue));
+        h.tvMtlArrived.setText(formatField("Mtl Arrived", it.mtlArrived));
+        h.tvQtyShipping.setText(formatField("Qty Shipping", it.qtyShipping));
 
         h.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -75,8 +84,17 @@ public class CfmAdapter extends RecyclerView.Adapter<CfmAdapter.VH> {
         });
     }
 
-    private String label(String k, String v) {
-        return k + ": " + (v == null || v.isEmpty() ? "-" : v);
+    private SpannableStringBuilder formatField(String label, String value) {
+        if (value == null || value.isEmpty()) {
+            value = "-";
+        }
+        String fullText = label + ": " + value;
+        SpannableStringBuilder ssb = new SpannableStringBuilder(fullText);
+        int colonIndex = label.length() + 2; // "Label: "
+        ssb.setSpan(new ForegroundColorSpan(0xFF616161), 0, colonIndex, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        ssb.setSpan(new ForegroundColorSpan(0xFF212121), colonIndex, fullText.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        ssb.setSpan(new StyleSpan(Typeface.BOLD), colonIndex, fullText.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        return ssb;
     }
 
     @Override
@@ -86,24 +104,28 @@ public class CfmAdapter extends RecyclerView.Adapter<CfmAdapter.VH> {
 
     static class VH extends RecyclerView.ViewHolder {
         TextView tvCfmId, tvSeasonVal, tvModelVal, tvStageVal, tvStyleVal, tvQtyVal;
-        TextView tvSeason, tvStage, tvLast, tvMold, tvDev, tvSpec, tvQty;
+        TextView tvBrand, tvGender, tvLast, tvTpDate, tvMoldNew, tvMoldExist, tvVsDev, tvSiteDev, tvSpecIssue, tvMtlArrived, tvQtyShipping;
 
         VH(@NonNull View v) {
             super(v);
-            tvCfmId     = v.findViewById(R.id.tvCfmId);
-            tvSeasonVal = v.findViewById(R.id.tvSeasonVal);
-            tvModelVal  = v.findViewById(R.id.tvModelVal);
-            tvStageVal  = v.findViewById(R.id.tvStageVal);
-            tvStyleVal  = v.findViewById(R.id.tvStyleVal);
-            tvQtyVal    = v.findViewById(R.id.tvQtyVal);
+            tvCfmId       = v.findViewById(R.id.tvCfmId);
+            tvSeasonVal   = v.findViewById(R.id.tvSeasonVal);
+            tvModelVal    = v.findViewById(R.id.tvModelVal);
+            tvStageVal    = v.findViewById(R.id.tvStageVal);
+            tvStyleVal    = v.findViewById(R.id.tvStyleVal);
+            tvQtyVal      = v.findViewById(R.id.tvQtyVal);
             
-            tvSeason    = v.findViewById(R.id.tvSeason);
-            tvStage     = v.findViewById(R.id.tvStage);
-            tvLast      = v.findViewById(R.id.tvLast);
-            tvMold      = v.findViewById(R.id.tvMold);
-            tvDev       = v.findViewById(R.id.tvDev);
-            tvSpec      = v.findViewById(R.id.tvSpec);
-            tvQty       = v.findViewById(R.id.tvQty);
+            tvBrand       = v.findViewById(R.id.tvBrand);
+            tvGender      = v.findViewById(R.id.tvGender);
+            tvLast        = v.findViewById(R.id.tvLast);
+            tvTpDate      = v.findViewById(R.id.tvTpDate);
+            tvMoldNew     = v.findViewById(R.id.tvMoldNew);
+            tvMoldExist   = v.findViewById(R.id.tvMoldExist);
+            tvVsDev       = v.findViewById(R.id.tvVsDev);
+            tvSiteDev     = v.findViewById(R.id.tvSiteDev);
+            tvSpecIssue   = v.findViewById(R.id.tvSpecIssue);
+            tvMtlArrived  = v.findViewById(R.id.tvMtlArrived);
+            tvQtyShipping = v.findViewById(R.id.tvQtyShipping);
         }
     }
 }

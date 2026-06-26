@@ -424,6 +424,7 @@ public class UpdateCfmActivity extends AppCompatActivity {
             }
             try {
                 JSONArray arr = new JSONArray(result);
+                tvStatus.setText("Đã tải dữ liệu thành công.");
                 displayHistoryDialog(process, arr);
             } catch (Exception e) {
                 Toast.makeText(UpdateCfmActivity.this, "Không có lịch sử nhập hoặc lỗi xử lý: " + e.toString(), Toast.LENGTH_SHORT).show();
