@@ -7,16 +7,6 @@
     android:background="@color/bg"
     android:padding="16dp">
 
-<!--    <TextView-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:text="Production Plan"-->
-<!--        android:textColor="@color/nb_red"-->
-<!--        android:textSize="26sp"-->
-<!--        android:textStyle="bold"-->
-<!--        android:gravity="center"-->
-<!--        android:paddingBottom="12dp" />-->
-
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -37,11 +27,17 @@
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
 
-                <Spinner
-                    android:id="@+id/spinnerSeasonFrom"
+                <androidx.appcompat.widget.AppCompatAutoCompleteTextView
+                    android:id="@+id/acSeasonFrom"
                     style="@style/FieldSpinner"
                     android:layout_width="0dp"
-                    android:layout_weight="1" />
+                    android:layout_weight="1"
+                    android:paddingHorizontal="10dp"
+                    android:textSize="14sp"
+                    android:singleLine="true"
+                    android:completionThreshold="1"
+                    android:inputType="text"
+                    android:hint="From" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -51,11 +47,17 @@
                     android:textColor="@color/textSecondary"
                     android:paddingHorizontal="8dp" />
 
-                <Spinner
-                    android:id="@+id/spinnerSeasonTo"
+                <androidx.appcompat.widget.AppCompatAutoCompleteTextView
+                    android:id="@+id/acSeasonTo"
                     style="@style/FieldSpinner"
                     android:layout_width="0dp"
-                    android:layout_weight="1" />
+                    android:layout_weight="1"
+                    android:paddingHorizontal="10dp"
+                    android:textSize="14sp"
+                    android:singleLine="true"
+                    android:completionThreshold="1"
+                    android:inputType="text"
+                    android:hint="To" />
             </LinearLayout>
 
             <LinearLayout
@@ -75,9 +77,15 @@
                         style="@style/FieldLabel"
                         android:text="CURRENT STAGE" />
 
-                    <Spinner
-                        android:id="@+id/spinnerStage"
-                        style="@style/FieldSpinner" />
+                    <androidx.appcompat.widget.AppCompatAutoCompleteTextView
+                        android:id="@+id/acStage"
+                        style="@style/FieldSpinner"
+                        android:paddingHorizontal="10dp"
+                        android:textSize="14sp"
+                        android:singleLine="true"
+                        android:completionThreshold="1"
+                        android:inputType="text"
+                        android:hint="Stage" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -91,9 +99,15 @@
                         style="@style/FieldLabel"
                         android:text="MODEL" />
 
-                    <Spinner
-                        android:id="@+id/spinnerModel"
-                        style="@style/FieldSpinner" />
+                    <androidx.appcompat.widget.AppCompatAutoCompleteTextView
+                        android:id="@+id/acModel"
+                        style="@style/FieldSpinner"
+                        android:paddingHorizontal="10dp"
+                        android:textSize="14sp"
+                        android:singleLine="true"
+                        android:completionThreshold="1"
+                        android:inputType="text"
+                        android:hint="Model" />
                 </LinearLayout>
             </LinearLayout>
 
@@ -117,11 +131,17 @@
                         android:layout_height="wrap_content"
                         android:text="TEAM" />
 
-                    <Spinner
-                        android:id="@+id/spinnerTeam"
+                    <androidx.appcompat.widget.AppCompatAutoCompleteTextView
+                        android:id="@+id/acTeam"
                         style="@style/FieldSpinner"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content" />
+                        android:layout_height="wrap_content"
+                        android:paddingHorizontal="10dp"
+                        android:textSize="14sp"
+                        android:singleLine="true"
+                        android:completionThreshold="1"
+                        android:inputType="text"
+                        android:hint="Team" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -138,11 +158,17 @@
                         android:layout_height="wrap_content"
                         android:text="DEV" />
 
-                    <Spinner
-                        android:id="@+id/spinnerDev"
+                    <androidx.appcompat.widget.AppCompatAutoCompleteTextView
+                        android:id="@+id/acDev"
                         style="@style/FieldSpinner"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content" />
+                        android:layout_height="wrap_content"
+                        android:paddingHorizontal="10dp"
+                        android:textSize="14sp"
+                        android:singleLine="true"
+                        android:completionThreshold="1"
+                        android:inputType="text"
+                        android:hint="Dev" />
                 </LinearLayout>
             </LinearLayout>
 
@@ -193,6 +219,25 @@
             android:text="Sẵn sàng."
             android:textColor="@color/textSecondary"
             android:textSize="13sp" />
+
+        <FrameLayout
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/edit_bg"
+            android:paddingLeft="4dp"
+            android:paddingTop="2dp"
+            android:paddingRight="4dp"
+            android:paddingBottom="2dp">
+
+            <Spinner
+                android:id="@+id/spinnerPlanFilter"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/textSecondary"
+                android:spinnerMode="dropdown"
+                android:padding="0dp" />
+        </FrameLayout>
 
         <ProgressBar
             android:id="@+id/progressBar"

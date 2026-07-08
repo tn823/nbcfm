@@ -12,6 +12,7 @@ import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.AutoCompleteTextView;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -26,7 +27,8 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
-    private Spinner spinnerSeasonFrom, spinnerSeasonTo, spinnerStage, spinnerModel, spinnerTeam, spinnerDev;
+    private AutoCompleteTextView acSeasonFrom, acSeasonTo, acStage, acModel, acTeam, acDev;
+    private Spinner spinnerPlanFilter;
     private Button btnRetrieve, btnClearFilter;
     private RecyclerView recyclerView;
     private ShimmerFrameLayout shimmerViewContainer;
@@ -40,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
     private final ArrayList<String> arrayDev  = new ArrayList<>();
 
     private final ArrayList<CfmItem> cfmList = new ArrayList<>();
+    private final ArrayList<CfmItem> fullCfmList = new ArrayList<>();
     private CfmAdapter adapter;
 
     // Cờ chặn lần onItemSelected tự kích hoạt ngay khi setAdapter (tránh load thừa / vòng lặp)
@@ -51,12 +54,12 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        spinnerSeasonFrom = findViewById(R.id.spinnerSeasonFrom);
-        spinnerSeasonTo   = findViewById(R.id.spinnerSeasonTo);
-        spinnerStage      = findViewById(R.id.spinnerStage);
-        spinnerModel      = findViewById(R.id.spinnerModel);
-        spinnerTeam       = findViewById(R.id.spinnerTeam);
-        spinnerDev        = findViewById(R.id.spinnerDev);
+        acSeasonFrom = findViewById(R.id.acSeasonFrom);
+        acSeasonTo   = findViewById(R.id.acSeasonTo);
+        acStage      = findViewById(R.id.acStage);
+        acModel      = findViewById(R.id.acModel);
+        acTeam       = findViewById(R.id.acTeam);
+        acDev        = findViewById(R.id.acDev);
         btnRetrieve   = findViewById(R.id.btnRetrieve);
         btnClearFilter = findViewById(R.id.btnClearFilter);
         recyclerView  = findViewById(R.id.recyclerView);
@@ -64,6 +67,20 @@ public class MainActivity extends AppCompatActivity {
         progressBar   = findViewById(R.id.progressBar);
         tvStatus      = findViewById(R.id.tvStatus);
         tvEmpty       = findViewById(R.id.tvEmpty);
+
+        spinnerPlanFilter = findViewById(R.id.spinnerPlanFilter);
+        String[] planFilterOptions = {"Tất cả", "Có Plan", "Chưa có Plan"};
+        ArrayAdapter<String> planFilterAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, planFilterOptions);
+        planFilterAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerPlanFilter.setAdapter(planFilterAdapter);
+        spinnerPlanFilter.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) {
+                applyPlanFilter();
+            }
+            @Override
+            public void onNothingSelected(android.widget.AdapterView<?> parent) {}
+        });
 
         adapter = new CfmAdapter(this, cfmList, new CfmAdapter.OnItemClick() {
             @Override
@@ -74,60 +91,60 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
 
-        // Season From đổi -> Tự động đồng bộ Season To và nạp lại Stage
-        spinnerSeasonFrom.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+        // Khởi tạo logic tự động gợi ý và kích hoạt chuỗi liên kết các bộ lọc
+        setupAutoComplete(acSeasonFrom, new Runnable() {
             @Override
-            public void onItemSelected(android.widget.AdapterView<?> p, View v, int pos, long id) {
+            public void run() {
                 if (ignoreSeason) { ignoreSeason = false; return; }
-                if (spinnerSeasonTo.getSelectedItemPosition() != pos) {
-                    spinnerSeasonTo.setSelection(pos);
-                } else {
-                    reloadStages();
+                String val = acSeasonFrom.getText().toString().trim();
+                // Đồng bộ Season To với Season From
+                if (!acSeasonTo.getText().toString().trim().equals(val)) {
+                    acSeasonTo.setText(val, false);
                 }
-            }
-            @Override public void onNothingSelected(android.widget.AdapterView<?> p) { }
-        });
-
-        // Season To đổi -> nạp lại Stage
-        spinnerSeasonTo.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(android.widget.AdapterView<?> p, View v, int pos, long id) {
                 reloadStages();
             }
-            @Override public void onNothingSelected(android.widget.AdapterView<?> p) { }
         });
 
-        // Stage đổi -> nạp lại Model
-        spinnerStage.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+        setupAutoComplete(acSeasonTo, new Runnable() {
             @Override
-            public void onItemSelected(android.widget.AdapterView<?> p, View v, int pos, long id) {
-                if (ignoreStage) { ignoreStage = false; return; }     // bo qua phat tu dong dau tien
+            public void run() {
+                reloadStages();
+            }
+        });
+
+        setupAutoComplete(acStage, new Runnable() {
+            @Override
+            public void run() {
+                if (ignoreStage) { ignoreStage = false; return; }
                 reloadModels();
             }
-            @Override public void onNothingSelected(android.widget.AdapterView<?> p) { }
         });
 
-        // Model đổi -> nạp lại Team
-        spinnerModel.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+        setupAutoComplete(acModel, new Runnable() {
             @Override
-            public void onItemSelected(android.widget.AdapterView<?> p, View v, int pos, long id) {
+            public void run() {
                 reloadTeams();
             }
-            @Override public void onNothingSelected(android.widget.AdapterView<?> p) { }
         });
 
-        // Team đổi -> nạp lại Dev
-        spinnerTeam.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+        setupAutoComplete(acTeam, new Runnable() {
             @Override
-            public void onItemSelected(android.widget.AdapterView<?> p, View v, int pos, long id) {
+            public void run() {
                 reloadDevs();
             }
-            @Override public void onNothingSelected(android.widget.AdapterView<?> p) { }
+        });
+
+        setupAutoComplete(acDev, new Runnable() {
+            @Override
+            public void run() {
+                // Ô cuối cùng, không cần reload các ô sau
+            }
         });
 
         btnRetrieve.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                hideKeyboard();
                 new RetrieveCfm().execute();
             }
         });
@@ -135,17 +152,18 @@ public class MainActivity extends AppCompatActivity {
         btnClearFilter.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Đặt lại các Spinner về lựa chọn đầu tiên ("%")
                 ignoreSeason = true;
                 ignoreStage = true;
-                spinnerSeasonFrom.setSelection(0);
-                spinnerSeasonTo.setSelection(0);
-                spinnerStage.setSelection(0);
-                spinnerModel.setSelection(0);
-                spinnerTeam.setSelection(0);
-                spinnerDev.setSelection(0);
+                acSeasonFrom.setText("", false);
+                acSeasonTo.setText("", false);
+                acStage.setText("", false);
+                acModel.setText("", false);
+                acTeam.setText("", false);
+                acDev.setText("", false);
 
                 cfmList.clear();
+                fullCfmList.clear();
+                spinnerPlanFilter.setSelection(0);
                 adapter.notifyDataSetChanged();
                 tvEmpty.setVisibility(View.GONE);
                 tvStatus.setText("Sẵn sàng.");
@@ -159,7 +177,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setStatus(String msg) {
-        tvStatus.setText(msg);
+        if (msg != null && msg.startsWith("Total:")) {
+            tvStatus.setText(msg);
+            tvStatus.setTextColor(getResources().getColor(R.color.nb_red));
+            tvStatus.setTypeface(null, android.graphics.Typeface.BOLD);
+            tvStatus.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 15f);
+        } else {
+            tvStatus.setText(msg);
+            tvStatus.setTextColor(getResources().getColor(R.color.textSecondary));
+            tvStatus.setTypeface(null, android.graphics.Typeface.NORMAL);
+            tvStatus.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 13f);
+        }
     }
 
     private void showLoading(boolean show) {
@@ -178,47 +206,53 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /** Nap lai Stage theo Season range. */
     private void reloadStages() {
-        String seasonFrom = spinnerSeasonFrom.getSelectedItem() != null ? spinnerSeasonFrom.getSelectedItem().toString() : "";
-        String seasonTo   = spinnerSeasonTo.getSelectedItem()   != null ? spinnerSeasonTo.getSelectedItem().toString()   : "";
-        if (!seasonFrom.isEmpty() || !seasonTo.isEmpty()) {
-            new LoadStages().execute(seasonFrom, seasonTo);
-        }
+        String seasonFrom = acSeasonFrom.getText().toString().trim();
+        String seasonTo   = acSeasonTo.getText().toString().trim();
+        if (seasonFrom.isEmpty()) seasonFrom = "%";
+        if (seasonTo.isEmpty()) seasonTo = "%";
+        new LoadStages().execute(seasonFrom, seasonTo);
     }
 
-    /** Nap lai Model theo Season range + Stage. */
     private void reloadModels() {
-        String seasonFrom = spinnerSeasonFrom.getSelectedItem() != null ? spinnerSeasonFrom.getSelectedItem().toString() : "";
-        String seasonTo   = spinnerSeasonTo.getSelectedItem()   != null ? spinnerSeasonTo.getSelectedItem().toString()   : "";
-        String stage      = spinnerStage.getSelectedItem()      != null ? spinnerStage.getSelectedItem().toString()      : "";
-        if (!seasonFrom.isEmpty() || !seasonTo.isEmpty()) {
-            new LoadModels().execute(seasonFrom, seasonTo, stage);
-        }
+        String seasonFrom = acSeasonFrom.getText().toString().trim();
+        String seasonTo   = acSeasonTo.getText().toString().trim();
+        String stage      = acStage.getText().toString().trim();
+        if (seasonFrom.isEmpty()) seasonFrom = "%";
+        if (seasonTo.isEmpty()) seasonTo = "%";
+        if (stage.isEmpty()) stage = "%";
+        new LoadModels().execute(seasonFrom, seasonTo, stage);
     }
 
-    /** Nap lai Team theo các bộ lọc trước đó. */
     private void reloadTeams() {
-        String seasonFrom = spinnerSeasonFrom.getSelectedItem() != null ? spinnerSeasonFrom.getSelectedItem().toString() : "";
-        String seasonTo   = spinnerSeasonTo.getSelectedItem()   != null ? spinnerSeasonTo.getSelectedItem().toString()   : "";
-        String stage      = spinnerStage.getSelectedItem()      != null ? spinnerStage.getSelectedItem().toString()      : "";
-        String model      = spinnerModel.getSelectedItem()      != null ? spinnerModel.getSelectedItem().toString()      : "";
+        String seasonFrom = acSeasonFrom.getText().toString().trim();
+        String seasonTo   = acSeasonTo.getText().toString().trim();
+        String stage      = acStage.getText().toString().trim();
+        String model      = acModel.getText().toString().trim();
+        if (seasonFrom.isEmpty()) seasonFrom = "%";
+        if (seasonTo.isEmpty()) seasonTo = "%";
+        if (stage.isEmpty()) stage = "%";
+        if (model.isEmpty()) model = "%";
         if (model.contains(" / ")) {
             model = model.split(" / ")[0].trim();
         }
         new LoadTeams().execute(seasonFrom, seasonTo, stage, model);
     }
 
-    /** Nap lai Dev theo các bộ lọc trước đó. */
     private void reloadDevs() {
-        String seasonFrom = spinnerSeasonFrom.getSelectedItem() != null ? spinnerSeasonFrom.getSelectedItem().toString() : "";
-        String seasonTo   = spinnerSeasonTo.getSelectedItem()   != null ? spinnerSeasonTo.getSelectedItem().toString()   : "";
-        String stage      = spinnerStage.getSelectedItem()      != null ? spinnerStage.getSelectedItem().toString()      : "";
-        String model      = spinnerModel.getSelectedItem()      != null ? spinnerModel.getSelectedItem().toString()      : "";
+        String seasonFrom = acSeasonFrom.getText().toString().trim();
+        String seasonTo   = acSeasonTo.getText().toString().trim();
+        String stage      = acStage.getText().toString().trim();
+        String model      = acModel.getText().toString().trim();
+        if (seasonFrom.isEmpty()) seasonFrom = "%";
+        if (seasonTo.isEmpty()) seasonTo = "%";
+        if (stage.isEmpty()) stage = "%";
+        if (model.isEmpty()) model = "%";
         if (model.contains(" / ")) {
             model = model.split(" / ")[0].trim();
         }
-        String team       = spinnerTeam.getSelectedItem()       != null ? spinnerTeam.getSelectedItem().toString()       : "";
+        String team       = acTeam.getText().toString().trim();
+        if (team.isEmpty()) team = "%";
         new LoadDevs().execute(seasonFrom, seasonTo, stage, model, team);
     }
 
@@ -247,7 +281,6 @@ public class MainActivity extends AppCompatActivity {
                 if (jsonStr == null) { error = "Khong ket noi duoc server (Season)."; return null; }
                 JSONArray arr = new JSONArray(jsonStr);
                 arraySeason.clear();
-                arraySeason.add("%");
                 for (int i = 0; i < arr.length(); i++) {
                     JSONObject c = arr.getJSONObject(i);
                     arraySeason.add(c.optString("SEASON", c.optString("VALUE", "")));
@@ -263,10 +296,9 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(Void v) {
             if (error != null) { Toast.makeText(MainActivity.this, error, Toast.LENGTH_LONG).show(); setStatus(error); return; }
             ignoreSeason = true;   // chan phat onItemSelected tu dong do setAdapter
-            ArrayAdapter<String> ad = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_spinner_item, arraySeason);
-            ad.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-            spinnerSeasonFrom.setAdapter(ad);
-            spinnerSeasonTo.setAdapter(ad);
+            ArrayAdapter<String> ad = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_dropdown_item_1line, arraySeason);
+            acSeasonFrom.setAdapter(ad);
+            acSeasonTo.setAdapter(ad);
             setStatus("San sang.");
             // Season da co -> nap Stage cho lua chon mac dinh
             reloadStages();
@@ -290,7 +322,6 @@ public class MainActivity extends AppCompatActivity {
                 if (jsonStr == null) { error = "Khong ket noi duoc server (Stage)."; return null; }
                 JSONArray arr = new JSONArray(jsonStr);
                 arrayStage.clear();
-                arrayStage.add("%");
                 for (int i = 0; i < arr.length(); i++) {
                     JSONObject c = arr.getJSONObject(i);
                     arrayStage.add(c.optString("CURRENT_STAGE", c.optString("VALUE", "")));
@@ -306,9 +337,8 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(Void v) {
             if (error != null) { Toast.makeText(MainActivity.this, error, Toast.LENGTH_LONG).show(); return; }
             ignoreStage = true;   // chan phat onItemSelected tu dong do setAdapter
-            ArrayAdapter<String> ad = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_spinner_item, arrayStage);
-            ad.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-            spinnerStage.setAdapter(ad);
+            ArrayAdapter<String> ad = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_dropdown_item_1line, arrayStage);
+            acStage.setAdapter(ad);
             // Stage da co -> nap Model cho lua chon mac dinh
             reloadModels();
         }
@@ -333,7 +363,6 @@ public class MainActivity extends AppCompatActivity {
                 if (jsonStr == null) { error = "Khong ket noi duoc server (Model)."; return null; }
                 JSONArray arr = new JSONArray(jsonStr);
                 arrayModel.clear();
-                arrayModel.add("%");
                 for (int i = 0; i < arr.length(); i++) {
                     JSONObject c = arr.getJSONObject(i);
                     String model = c.optString("MODEL_NAME", "");
@@ -350,9 +379,8 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(Void v) {
             if (error != null) { Toast.makeText(MainActivity.this, error, Toast.LENGTH_LONG).show(); return; }
-            ArrayAdapter<String> ad = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_spinner_item, arrayModel);
-            ad.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-            spinnerModel.setAdapter(ad);
+            ArrayAdapter<String> ad = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_dropdown_item_1line, arrayModel);
+            acModel.setAdapter(ad);
             // Model da co -> nap tiep Team
             reloadTeams();
         }
@@ -379,7 +407,6 @@ public class MainActivity extends AppCompatActivity {
                 if (jsonStr == null) { error = "Khong ket noi duoc server (Team)."; return null; }
                 JSONArray arr = new JSONArray(jsonStr);
                 arrayTeam.clear();
-                arrayTeam.add("%"); // Thêm lựa chọn Tất cả
                 for (int i = 0; i < arr.length(); i++) {
                     JSONObject c = arr.getJSONObject(i);
                     arrayTeam.add(c.optString("VS_TEAM", c.optString("VALUE", "")));
@@ -394,9 +421,8 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(Void v) {
             if (error != null) { Toast.makeText(MainActivity.this, error, Toast.LENGTH_LONG).show(); return; }
-            ArrayAdapter<String> ad = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_spinner_item, arrayTeam);
-            ad.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-            spinnerTeam.setAdapter(ad);
+            ArrayAdapter<String> ad = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_dropdown_item_1line, arrayTeam);
+            acTeam.setAdapter(ad);
             // Team da co -> nap tiep Dev
             reloadDevs();
         }
@@ -425,7 +451,6 @@ public class MainActivity extends AppCompatActivity {
                 if (jsonStr == null) { error = "Khong ket noi duoc server (Dev)."; return null; }
                 JSONArray arr = new JSONArray(jsonStr);
                 arrayDev.clear();
-                arrayDev.add("%"); // Thêm lựa chọn Tất cả
                 for (int i = 0; i < arr.length(); i++) {
                     JSONObject c = arr.getJSONObject(i);
                     arrayDev.add(c.optString("VS_DEVELOPER", c.optString("VALUE", "")));
@@ -440,9 +465,8 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(Void v) {
             if (error != null) { Toast.makeText(MainActivity.this, error, Toast.LENGTH_LONG).show(); return; }
-            ArrayAdapter<String> ad = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_spinner_item, arrayDev);
-            ad.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-            spinnerDev.setAdapter(ad);
+            ArrayAdapter<String> ad = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_dropdown_item_1line, arrayDev);
+            acDev.setAdapter(ad);
         }
     }
 
@@ -461,12 +485,22 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected Void doInBackground(Void... v) {
             try {
-                String seasonFrom = spinnerSeasonFrom.getSelectedItem() != null ? spinnerSeasonFrom.getSelectedItem().toString() : "";
-                String seasonTo = spinnerSeasonTo.getSelectedItem() != null ? spinnerSeasonTo.getSelectedItem().toString() : "";
-                String stage  = spinnerStage.getSelectedItem()  != null ? spinnerStage.getSelectedItem().toString()  : "";
-                String model  = spinnerModel.getSelectedItem()  != null ? spinnerModel.getSelectedItem().toString()  : "";
-                String team  = spinnerTeam.getSelectedItem()  != null ? spinnerTeam.getSelectedItem().toString()  : "";
-                String dev = spinnerDev.getSelectedItem()  != null ? spinnerDev.getSelectedItem().toString()  : "";
+                String seasonFrom = acSeasonFrom.getText().toString().trim();
+                String seasonTo   = acSeasonTo.getText().toString().trim();
+                String stage      = acStage.getText().toString().trim();
+                String model      = acModel.getText().toString().trim();
+                String team       = acTeam.getText().toString().trim();
+                String dev        = acDev.getText().toString().trim();
+
+                if (seasonFrom.isEmpty()) seasonFrom = "%";
+                if (seasonTo.isEmpty()) seasonTo = "%";
+                if (stage.isEmpty()) stage = "%";
+                if (model.isEmpty()) model = "%";
+                if (model.contains(" / ")) {
+                    model = model.split(" / ")[0].trim();
+                }
+                if (team.isEmpty()) team = "%";
+                if (dev.isEmpty()) dev = "%";
 
                 HttpHandler sh = new HttpHandler();
                 String url = Config.GET_CFM_LIST
@@ -506,20 +540,130 @@ public class MainActivity extends AppCompatActivity {
                 setStatus(error);
                 return;
             }
-            cfmList.clear();
-            cfmList.addAll(result);
-            adapter.notifyDataSetChanged();
+            fullCfmList.clear();
+            fullCfmList.addAll(result);
+            applyPlanFilter();
             recyclerView.scrollToPosition(0);
 
-            if (cfmList.isEmpty()) {
-                tvEmpty.setVisibility(View.VISIBLE);
-                setStatus("Khong co du lieu phu hop.");
+            if (result.isEmpty()) {
                 Toast.makeText(MainActivity.this, "Khong tim thay du lieu CFM.", Toast.LENGTH_LONG).show();
             } else {
-                tvEmpty.setVisibility(View.GONE);
-                setStatus("Total: " + cfmList.size() + " CFM.");
-                Toast.makeText(MainActivity.this, "Da tai " + cfmList.size() + " CFM.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Da tai " + result.size() + " CFM.", Toast.LENGTH_SHORT).show();
             }
         }
+    }
+    private void applyPlanFilter() {
+        if (fullCfmList.isEmpty()) {
+            cfmList.clear();
+            adapter.notifyDataSetChanged();
+            tvEmpty.setVisibility(View.VISIBLE);
+            tvEmpty.setText("Không có dữ liệu.");
+            setStatus("Sẵn sàng.");
+            return;
+        }
+
+        int selectedPosition = spinnerPlanFilter.getSelectedItemPosition();
+        cfmList.clear();
+        for (CfmItem item : fullCfmList) {
+            if (selectedPosition == 0) {
+                cfmList.add(item);
+            } else if (selectedPosition == 1) {
+                if (item.hasPlan == 1) {
+                    cfmList.add(item);
+                }
+            } else if (selectedPosition == 2) {
+                if (item.hasPlan == 0) {
+                    cfmList.add(item);
+                }
+            }
+        }
+        adapter.notifyDataSetChanged();
+
+        if (cfmList.isEmpty()) {
+            tvEmpty.setVisibility(View.VISIBLE);
+            tvEmpty.setText("Không có dữ liệu phù hợp.");
+            setStatus("Tổng: 0 CFM.");
+        } else {
+            tvEmpty.setVisibility(View.GONE);
+            setStatus("Tổng: " + cfmList.size() + " CFM.");
+        }
+    }
+
+    private void hideKeyboard() {
+        View view = this.getCurrentFocus();
+        if (view != null) {
+            android.view.inputmethod.InputMethodManager imm = (android.view.inputmethod.InputMethodManager) getSystemService(android.content.Context.INPUT_METHOD_SERVICE);
+            if (imm != null) {
+                imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+            }
+        }
+    }
+
+    private void setupAutoComplete(final AutoCompleteTextView ac, final Runnable onSelectOrChange) {
+        // Mở dropdown hiển thị danh sách khi click
+        ac.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ac.showDropDown();
+            }
+        });
+
+        // Mở dropdown khi ô nhập nhận focus
+        ac.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (hasFocus) {
+                    ac.showDropDown();
+                } else {
+                    // Khi rời khỏi ô nhập (nhập tay xong và mất focus), chạy logic reload các bộ lọc tiếp theo
+                    onSelectOrChange.run();
+                }
+            }
+        });
+
+        // Chạy logic reload khi chọn một giá trị từ danh sách gợi ý dropdown
+        ac.setOnItemClickListener(new android.widget.AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(android.widget.AdapterView<?> parent, View view, int position, long id) {
+                onSelectOrChange.run();
+            }
+        });
+
+        // Cấu hình hiển thị nút xóa (ic_clear) ở bên phải khi có chữ
+        ac.addTextChangedListener(new android.text.TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (s.length() > 0) {
+                    ac.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_clear, 0);
+                } else {
+                    ac.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
+                }
+            }
+            @Override
+            public void afterTextChanged(android.text.Editable s) {}
+        });
+
+        // Touch Listener để bắt sự kiện click vào nút xóa
+        ac.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, android.view.MotionEvent event) {
+                if (event.getAction() == android.view.MotionEvent.ACTION_UP) {
+                    if (ac.getCompoundDrawables()[2] != null) {
+                        int clearButtonWidth = ac.getCompoundDrawables()[2].getBounds().width();
+                        int xClick = (int) event.getX();
+                        // Nếu click trong phạm vi nút xóa (bên phải)
+                        if (xClick >= (ac.getWidth() - ac.getPaddingRight() - clearButtonWidth - 10)) {
+                            ac.setText("", false);
+                            onSelectOrChange.run(); // Chạy lại logic lọc cho các ô phía sau
+                            ac.showDropDown(); // Hiện lại dropdown sau khi xóa
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+        });
     }
 }
