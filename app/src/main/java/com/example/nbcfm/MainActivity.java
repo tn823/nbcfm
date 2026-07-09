@@ -145,6 +145,16 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 hideKeyboard();
+                String rawFrom = acSeasonFrom.getText().toString();
+                String normFrom = normalizeSeason(rawFrom);
+                if (!rawFrom.equals(normFrom)) {
+                    acSeasonFrom.setText(normFrom, false);
+                }
+                String rawTo = acSeasonTo.getText().toString();
+                String normTo = normalizeSeason(rawTo);
+                if (!rawTo.equals(normTo)) {
+                    acSeasonTo.setText(normTo, false);
+                }
                 new RetrieveCfm().execute();
             }
         });
@@ -207,16 +217,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void reloadStages() {
-        String seasonFrom = acSeasonFrom.getText().toString().trim();
-        String seasonTo   = acSeasonTo.getText().toString().trim();
+        String seasonFrom = normalizeSeason(acSeasonFrom.getText().toString().trim());
+        String seasonTo   = normalizeSeason(acSeasonTo.getText().toString().trim());
         if (seasonFrom.isEmpty()) seasonFrom = "%";
         if (seasonTo.isEmpty()) seasonTo = "%";
         new LoadStages().execute(seasonFrom, seasonTo);
     }
 
     private void reloadModels() {
-        String seasonFrom = acSeasonFrom.getText().toString().trim();
-        String seasonTo   = acSeasonTo.getText().toString().trim();
+        String seasonFrom = normalizeSeason(acSeasonFrom.getText().toString().trim());
+        String seasonTo   = normalizeSeason(acSeasonTo.getText().toString().trim());
         String stage      = acStage.getText().toString().trim();
         if (seasonFrom.isEmpty()) seasonFrom = "%";
         if (seasonTo.isEmpty()) seasonTo = "%";
@@ -225,8 +235,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void reloadTeams() {
-        String seasonFrom = acSeasonFrom.getText().toString().trim();
-        String seasonTo   = acSeasonTo.getText().toString().trim();
+        String seasonFrom = normalizeSeason(acSeasonFrom.getText().toString().trim());
+        String seasonTo   = normalizeSeason(acSeasonTo.getText().toString().trim());
         String stage      = acStage.getText().toString().trim();
         String model      = acModel.getText().toString().trim();
         if (seasonFrom.isEmpty()) seasonFrom = "%";
@@ -240,8 +250,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void reloadDevs() {
-        String seasonFrom = acSeasonFrom.getText().toString().trim();
-        String seasonTo   = acSeasonTo.getText().toString().trim();
+        String seasonFrom = normalizeSeason(acSeasonFrom.getText().toString().trim());
+        String seasonTo   = normalizeSeason(acSeasonTo.getText().toString().trim());
         String stage      = acStage.getText().toString().trim();
         String model      = acModel.getText().toString().trim();
         if (seasonFrom.isEmpty()) seasonFrom = "%";
@@ -275,20 +285,24 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected Void doInBackground(Void... v) {
-            try {
-                HttpHandler sh = new HttpHandler();
-                String jsonStr = sh.makeServiceCall(Config.GET_SEASONS);
-                if (jsonStr == null) { error = "Khong ket noi duoc server (Season)."; return null; }
-                JSONArray arr = new JSONArray(jsonStr);
-                arraySeason.clear();
-                for (int i = 0; i < arr.length(); i++) {
-                    JSONObject c = arr.getJSONObject(i);
-                    arraySeason.add(c.optString("SEASON", c.optString("VALUE", "")));
-                }
-            } catch (Exception e) {
-                error = "Loi doc du lieu Season: " + e.toString();
-                Log.e("LoadSeasons", error);
-            }
+            arraySeason.clear();
+            arraySeason.add("S127");
+            arraySeason.add("S227");
+            arraySeason.add("S128");
+            arraySeason.add("S228");
+            arraySeason.add("S129");
+            arraySeason.add("S229");
+            arraySeason.add("S130");
+            arraySeason.add("S230");
+            arraySeason.add("S131");
+            arraySeason.add("S231");
+            arraySeason.add("S132");
+            arraySeason.add("S232");
+            arraySeason.add("S133");
+            arraySeason.add("S233");
+            arraySeason.add("S134");
+            arraySeason.add("S234");
+            arraySeason.add("S135");
             return null;
         }
 
@@ -485,8 +499,8 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected Void doInBackground(Void... v) {
             try {
-                String seasonFrom = acSeasonFrom.getText().toString().trim();
-                String seasonTo   = acSeasonTo.getText().toString().trim();
+                String seasonFrom = normalizeSeason(acSeasonFrom.getText().toString().trim());
+                String seasonTo   = normalizeSeason(acSeasonTo.getText().toString().trim());
                 String stage      = acStage.getText().toString().trim();
                 String model      = acModel.getText().toString().trim();
                 String team       = acTeam.getText().toString().trim();
@@ -615,6 +629,13 @@ public class MainActivity extends AppCompatActivity {
                 if (hasFocus) {
                     ac.showDropDown();
                 } else {
+                    if (ac == acSeasonFrom || ac == acSeasonTo) {
+                        String rawVal = ac.getText().toString();
+                        String normVal = normalizeSeason(rawVal);
+                        if (!rawVal.equals(normVal)) {
+                            ac.setText(normVal, false);
+                        }
+                    }
                     // Khi rời khỏi ô nhập (nhập tay xong và mất focus), chạy logic reload các bộ lọc tiếp theo
                     onSelectOrChange.run();
                 }
@@ -665,5 +686,18 @@ public class MainActivity extends AppCompatActivity {
                 return false;
             }
         });
+    }
+
+    private String normalizeSeason(String val) {
+        if (val == null) return "";
+        val = val.trim();
+        if (val.isEmpty() || val.equals("%")) return val;
+        if (val.toLowerCase().startsWith("s")) {
+            return "S" + val.substring(1).toUpperCase();
+        }
+        if (val.matches("\\d+")) {
+            return "S" + val;
+        }
+        return val.toUpperCase();
     }
 }
