@@ -27,6 +27,7 @@ public class CfmItem implements Serializable {
     public String qtyWorking   = "";
     public String qtyShipping  = "";
     public int hasPlan = 0;
+    public int isOverdue = 0;
 
     public static CfmItem fromJson(JSONObject c) {
         CfmItem it = new CfmItem();
@@ -48,6 +49,7 @@ public class CfmItem implements Serializable {
         it.qtyWorking    = opt(c, "QTY_WORKING");
         it.qtyShipping   = opt(c, "QTY_SHIPPING");
         it.hasPlan = c.optInt("HAS_PLAN",0);
+        it.isOverdue = c.optInt("IS_OVERDUE",0);
         return it;
     }
 

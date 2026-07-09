@@ -13,6 +13,7 @@ public class Config {
     public static final String GET_STAGES       = BASE_URL + "getcfmstages";
     // getcfmmodels?season=...
     public static final String GET_MODELS       = BASE_URL + "getcfmmodels";
+    public static final String GET_STYLES       = BASE_URL + "getcfmstyles";
 
     // GET danh sách CFM theo điều kiện lọc
     // getcfmlist?season=..&stage=..&model=..

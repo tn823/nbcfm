@@ -41,6 +41,7 @@ public class UpdateCfmActivity extends AppCompatActivity {
     private ProgressBar progressBar;
     private Button btnSave;
     private final ImageButton[] btnEdits = new ImageButton[4]; // Nút edit của [ASS, STT, PRSTT, CUT]
+    private final android.widget.CheckBox[] cbMakeups = new android.widget.CheckBox[4]; // Checkbox làm bù
 
 
     private final String[] PROCS = {"ASS", "STT", "PRSTT", "CUT"};
@@ -78,24 +79,28 @@ public class UpdateCfmActivity extends AppCompatActivity {
         dateFields[0][1] = findViewById(R.id.tvAssEnd);
         tvProgresses[0]  = findViewById(R.id.tvAssProgress);
         etQtys[0]        = findViewById(R.id.etAssQty);
+        cbMakeups[0]     = findViewById(R.id.cbAssMakeup);
 
         // Ánh xạ các Views của quy trình STT
         dateFields[1][0] = findViewById(R.id.tvSttStart);
         dateFields[1][1] = findViewById(R.id.tvSttEnd);
         tvProgresses[1]  = findViewById(R.id.tvSttProgress);
         etQtys[1]        = findViewById(R.id.etSttQty);
+        cbMakeups[1]     = findViewById(R.id.cbSttMakeup);
 
         // Ánh xạ các Views của quy trình PRSTT
         dateFields[2][0] = findViewById(R.id.tvPrsttStart);
         dateFields[2][1] = findViewById(R.id.tvPrsttEnd);
         tvProgresses[2]  = findViewById(R.id.tvPrsttProgress);
         etQtys[2]        = findViewById(R.id.etPrsttQty);
+        cbMakeups[2]     = findViewById(R.id.cbPrsttMakeup);
 
         // Ánh xạ các Views của quy trình CUT
         dateFields[3][0] = findViewById(R.id.tvCutStart);
         dateFields[3][1] = findViewById(R.id.tvCutEnd);
         tvProgresses[3]  = findViewById(R.id.tvCutProgress);
         etQtys[3]        = findViewById(R.id.etCutQty);
+        cbMakeups[3]     = findViewById(R.id.cbCutMakeup);
 
         // Gắn sự kiện chọn ngày khi Click vào TextView ngày bắt đầu / kết thúc
         for (int i = 0; i < 4; i++) {
@@ -281,6 +286,18 @@ public class UpdateCfmActivity extends AppCompatActivity {
                     initialDates[i][1] = "";
                 }
             }
+            
+            // Auto-detect trễ kế hoạch để tích Checkbox làm bù
+            String today = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(new java.util.Date());
+            for (int i = 0; i < 4; i++) {
+                String end = o != null ? clean(o.optString(PROCS[i] + "_END", "")) : "";
+                if (!end.isEmpty()) {
+                    cbMakeups[i].setChecked(today.compareTo(end) > 0);
+                } else {
+                    cbMakeups[i].setChecked(false);
+                }
+            }
+
             tvStatus.setText("Đã tải dữ liệu thành công.");
             updateProgressUI();
         }
@@ -331,6 +348,7 @@ public class UpdateCfmActivity extends AppCompatActivity {
                     String qtyStr = etQtys[i].getText().toString().trim();
                     if (!qtyStr.isEmpty()) {
                         body.put(PROCS[i] + "_QTY", qtyStr);
+                        body.put(PROCS[i] + "_PRODUCTION_TYPE", cbMakeups[i].isChecked() ? "R" : "N");
                         hasProd = true;
                     }
                 }
@@ -466,10 +484,12 @@ public class UpdateCfmActivity extends AppCompatActivity {
                 final View itemView = getLayoutInflater().inflate(R.layout.dialog_history_item, null);
                 TextView tvTime = itemView.findViewById(R.id.tvTime);
                 final EditText etQty = itemView.findViewById(R.id.etQty);
+                final android.widget.CheckBox cbHistoryMakeup = itemView.findViewById(R.id.cbHistoryMakeup);
                 ImageButton btnDelete = itemView.findViewById(R.id.btnDelete);
 
                 tvTime.setText(timeStr);
                 etQty.setText(String.valueOf(qty));
+                cbHistoryMakeup.setChecked("R".equalsIgnoreCase(item.optString("PRODUCTION_TYPE", "")));
 
                 itemView.setTag(item);
                 itemViews.add(itemView);
@@ -506,14 +526,20 @@ public class UpdateCfmActivity extends AppCompatActivity {
                         int origQty = orig.getInt("QTY");
 
                         EditText etQty = v.findViewById(R.id.etQty);
+                        android.widget.CheckBox cbHistoryMakeup = v.findViewById(R.id.cbHistoryMakeup);
                         String newQtyStr = etQty.getText().toString().trim();
                         if (newQtyStr.isEmpty()) continue;
 
                         int newQty = Integer.parseInt(newQtyStr);
-                        if (newQty != origQty) {
+                        boolean isChecked = cbHistoryMakeup.isChecked();
+                        String origType = orig.optString("PRODUCTION_TYPE", "N");
+                        boolean typeChanged = (isChecked && !"R".equals(origType)) || (!isChecked && "R".equals(origType));
+
+                        if (newQty != origQty || typeChanged) {
                             JSONObject upd = new JSONObject();
                             upd.put("G_GATHER", gather);
                             upd.put("QTY", newQty);
+                            upd.put("PRODUCTION_TYPE", isChecked ? "R" : "N");
                             updates.put(upd);
                         }
                     } catch (Exception ignored) {}

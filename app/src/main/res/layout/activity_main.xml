@@ -20,44 +20,55 @@
             android:orientation="vertical"
             android:padding="12dp">
 
-            <TextView style="@style/FieldLabel" android:text="SEASON" />
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:gravity="center_vertical">
+                android:layout_marginTop="4dp">
 
-                <androidx.appcompat.widget.AppCompatAutoCompleteTextView
-                    android:id="@+id/acSeasonFrom"
-                    style="@style/FieldSpinner"
+                <LinearLayout
                     android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:paddingHorizontal="10dp"
-                    android:textSize="14sp"
-                    android:singleLine="true"
-                    android:completionThreshold="1"
-                    android:inputType="text"
-                    android:hint="From" />
-
-                <TextView
-                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text=" ~ "
-                    android:textSize="18sp"
-                    android:textColor="@color/textSecondary"
-                    android:paddingHorizontal="8dp" />
-
-                <androidx.appcompat.widget.AppCompatAutoCompleteTextView
-                    android:id="@+id/acSeasonTo"
-                    style="@style/FieldSpinner"
-                    android:layout_width="0dp"
                     android:layout_weight="1"
-                    android:paddingHorizontal="10dp"
-                    android:textSize="14sp"
-                    android:singleLine="true"
-                    android:completionThreshold="1"
-                    android:inputType="text"
-                    android:hint="To" />
+                    android:orientation="vertical"
+                    android:layout_marginEnd="6dp">
+
+                    <TextView
+                        style="@style/FieldLabel"
+                        android:text="SEASON" />
+
+                    <androidx.appcompat.widget.AppCompatAutoCompleteTextView
+                        android:id="@+id/acSeason"
+                        style="@style/FieldSpinner"
+                        android:paddingHorizontal="10dp"
+                        android:textSize="14sp"
+                        android:singleLine="true"
+                        android:completionThreshold="1"
+                        android:inputType="text"
+                        android:hint="Season" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginStart="6dp">
+
+                    <TextView
+                        style="@style/FieldLabel"
+                        android:text="STYLE" />
+
+                    <androidx.appcompat.widget.AppCompatAutoCompleteTextView
+                        android:id="@+id/acStyleNo"
+                        style="@style/FieldSpinner"
+                        android:paddingHorizontal="10dp"
+                        android:textSize="14sp"
+                        android:singleLine="true"
+                        android:completionThreshold="1"
+                        android:inputType="text"
+                        android:hint="Style No" />
+                </LinearLayout>
             </LinearLayout>
 
             <LinearLayout

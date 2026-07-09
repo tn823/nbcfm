@@ -30,6 +30,7 @@ public class UpdateProductionActivity extends AppCompatActivity {
     private TextView tvTitle, tvStatus, tvProgress;
     private Spinner spinnerProcess;
     private EditText etQty;
+    private android.widget.CheckBox cbMakeup;
     private Button btnSave;
     private ProgressBar progressBar;
 
@@ -54,6 +55,7 @@ public class UpdateProductionActivity extends AppCompatActivity {
         tvProgress     = findViewById(R.id.tvProgress);
         spinnerProcess = findViewById(R.id.spinnerProcess);
         etQty          = findViewById(R.id.etQty);
+        cbMakeup       = findViewById(R.id.cbMakeup);
         btnSave        = findViewById(R.id.btnSave);
         progressBar    = findViewById(R.id.progressBar);
 
@@ -68,6 +70,7 @@ public class UpdateProductionActivity extends AppCompatActivity {
             @Override
             public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) {
                 updateProgressUI();
+                checkAndSetMakeupCheckbox();
             }
 
             @Override
@@ -136,6 +139,25 @@ public class UpdateProductionActivity extends AppCompatActivity {
         return 0;
     }
 
+    private void checkAndSetMakeupCheckbox() {
+        String proc = spinnerProcess.getSelectedItem() != null ? spinnerProcess.getSelectedItem().toString() : "";
+        if (proc.isEmpty() || planData == null || cbMakeup == null) {
+            if (cbMakeup != null) cbMakeup.setChecked(false);
+            return;
+        }
+        String endLimit = planData.optString(proc + "_END", "");
+        if (!endLimit.isEmpty() && !endLimit.equalsIgnoreCase("null")) {
+            try {
+                String today = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(new java.util.Date());
+                cbMakeup.setChecked(today.compareTo(endLimit) > 0);
+            } catch (Exception e) {
+                cbMakeup.setChecked(false);
+            }
+        } else {
+            cbMakeup.setChecked(false);
+        }
+    }
+
     private void updateProgressUI() {
         if (tvProgress == null) return;
         int actual = getAccumulatedQty();
@@ -195,6 +217,7 @@ public class UpdateProductionActivity extends AppCompatActivity {
             planData = o;
             tvStatus.setText("Đã tải dữ liệu tích lũy.");
             updateProgressUI();
+            checkAndSetMakeupCheckbox();
         }
     }
 
@@ -211,6 +234,7 @@ public class UpdateProductionActivity extends AppCompatActivity {
                 body.put("CFM_ID", cfmId);
                 body.put("PROCESS", spinnerProcess.getSelectedItem().toString());
                 body.put("QTY", etQty.getText().toString().trim());
+                body.put("PRODUCTION_TYPE", cbMakeup.isChecked() ? "R" : "N");
 
                 HttpHandler sh = new HttpHandler();
                 String resp = sh.makePostCall(Config.SAVE_CFM_PROD, body.toString());

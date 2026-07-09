@@ -66,15 +66,29 @@
                         android:background="?android:attr/selectableItemBackgroundBorderless"
                         android:layout_marginRight="8dp"
                         android:tint="@color/nb_red" />
-                    <EditText
-                        android:id="@+id/etAssQty"
-                        android:layout_width="120dp"
-                        android:layout_height="36dp"
-                        android:background="@drawable/edit_bg"
-                        android:hint="+ Nhập thêm Qty"
-                        android:inputType="number"
-                        android:paddingHorizontal="10dp"
-                        android:textSize="13sp" />
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:gravity="end">
+                        <EditText
+                            android:id="@+id/etAssQty"
+                            android:layout_width="120dp"
+                            android:layout_height="36dp"
+                            android:background="@drawable/edit_bg"
+                            android:hint="+ Nhập thêm Qty"
+                            android:inputType="number"
+                            android:paddingHorizontal="10dp"
+                            android:textSize="13sp" />
+                        <CheckBox
+                            android:id="@+id/cbAssMakeup"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Làm bù"
+                            android:textSize="11sp"
+                            android:textColor="@color/nb_red"
+                            android:layout_marginTop="2dp" />
+                    </LinearLayout>
                 </LinearLayout>
 
                 <!-- ================== PROCESS STT ================== -->
@@ -107,15 +121,29 @@
                         android:background="?android:attr/selectableItemBackgroundBorderless"
                         android:layout_marginRight="8dp"
                         android:tint="@color/nb_red" />
-                    <EditText
-                        android:id="@+id/etSttQty"
-                        android:layout_width="120dp"
-                        android:layout_height="40dp"
-                        android:background="@drawable/edit_bg"
-                        android:hint="+ Nhập thêm Qty"
-                        android:inputType="number"
-                        android:paddingHorizontal="10dp"
-                        android:textSize="13sp" />
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:gravity="end">
+                        <EditText
+                            android:id="@+id/etSttQty"
+                            android:layout_width="120dp"
+                            android:layout_height="40dp"
+                            android:background="@drawable/edit_bg"
+                            android:hint="+ Nhập thêm Qty"
+                            android:inputType="number"
+                            android:paddingHorizontal="10dp"
+                            android:textSize="13sp" />
+                        <CheckBox
+                            android:id="@+id/cbSttMakeup"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Làm bù"
+                            android:textSize="11sp"
+                            android:textColor="@color/nb_red"
+                            android:layout_marginTop="2dp" />
+                    </LinearLayout>
                 </LinearLayout>
 
                 <!-- ================== PROCESS PRSTT ================== -->
@@ -148,15 +176,29 @@
                         android:background="?android:attr/selectableItemBackgroundBorderless"
                         android:layout_marginRight="8dp"
                         android:tint="@color/nb_red" />
-                    <EditText
-                        android:id="@+id/etPrsttQty"
-                        android:layout_width="120dp"
-                        android:layout_height="40dp"
-                        android:background="@drawable/edit_bg"
-                        android:hint="+ Nhập thêm Qty"
-                        android:inputType="number"
-                        android:paddingHorizontal="10dp"
-                        android:textSize="13sp" />
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:gravity="end">
+                        <EditText
+                            android:id="@+id/etPrsttQty"
+                            android:layout_width="120dp"
+                            android:layout_height="40dp"
+                            android:background="@drawable/edit_bg"
+                            android:hint="+ Nhập thêm Qty"
+                            android:inputType="number"
+                            android:paddingHorizontal="10dp"
+                            android:textSize="13sp" />
+                        <CheckBox
+                            android:id="@+id/cbPrsttMakeup"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Làm bù"
+                            android:textSize="11sp"
+                            android:textColor="@color/nb_red"
+                            android:layout_marginTop="2dp" />
+                    </LinearLayout>
                 </LinearLayout>
 
                 <!-- ================== PROCESS CUT ================== -->
@@ -189,15 +231,29 @@
                         android:background="?android:attr/selectableItemBackgroundBorderless"
                         android:layout_marginRight="8dp"
                         android:tint="@color/nb_red" />
-                    <EditText
-                        android:id="@+id/etCutQty"
-                        android:layout_width="120dp"
-                        android:layout_height="40dp"
-                        android:background="@drawable/edit_bg"
-                        android:hint="+ Nhập thêm Qty"
-                        android:inputType="number"
-                        android:paddingHorizontal="10dp"
-                        android:textSize="13sp" />
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:gravity="end">
+                        <EditText
+                            android:id="@+id/etCutQty"
+                            android:layout_width="120dp"
+                            android:layout_height="40dp"
+                            android:background="@drawable/edit_bg"
+                            android:hint="+ Nhập thêm Qty"
+                            android:inputType="number"
+                            android:paddingHorizontal="10dp"
+                            android:textSize="13sp" />
+                        <CheckBox
+                            android:id="@+id/cbCutMakeup"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Làm bù"
+                            android:textSize="11sp"
+                            android:textColor="@color/nb_red"
+                            android:layout_marginTop="2dp" />
+                    </LinearLayout>
                 </LinearLayout>
 
             </LinearLayout>

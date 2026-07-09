@@ -27,7 +27,7 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
-    private AutoCompleteTextView acSeasonFrom, acSeasonTo, acStage, acModel, acTeam, acDev;
+    private AutoCompleteTextView acSeason, acStyleNo, acStage, acModel, acTeam, acDev;
     private Spinner spinnerPlanFilter;
     private Button btnRetrieve, btnClearFilter;
     private RecyclerView recyclerView;
@@ -40,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
     private final ArrayList<String> arrayModel  = new ArrayList<>();
     private final ArrayList<String> arrayTeam  = new ArrayList<>();
     private final ArrayList<String> arrayDev  = new ArrayList<>();
+    private final ArrayList<String> arrayStyleNo = new ArrayList<>();
 
     private final ArrayList<CfmItem> cfmList = new ArrayList<>();
     private final ArrayList<CfmItem> fullCfmList = new ArrayList<>();
@@ -54,8 +55,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        acSeasonFrom = findViewById(R.id.acSeasonFrom);
-        acSeasonTo   = findViewById(R.id.acSeasonTo);
+        acSeason    = findViewById(R.id.acSeason);
+        acStyleNo   = findViewById(R.id.acStyleNo);
         acStage      = findViewById(R.id.acStage);
         acModel      = findViewById(R.id.acModel);
         acTeam       = findViewById(R.id.acTeam);
@@ -69,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
         tvEmpty       = findViewById(R.id.tvEmpty);
 
         spinnerPlanFilter = findViewById(R.id.spinnerPlanFilter);
-        String[] planFilterOptions = {"Tất cả", "Có Plan", "Chưa có Plan"};
+        String[] planFilterOptions = {"Tất cả", "Có Plan", "Chưa có Plan", "Trễ hạn"};
         ArrayAdapter<String> planFilterAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, planFilterOptions);
         planFilterAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerPlanFilter.setAdapter(planFilterAdapter);
@@ -92,20 +93,15 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setAdapter(adapter);
 
         // Khởi tạo logic tự động gợi ý và kích hoạt chuỗi liên kết các bộ lọc
-        setupAutoComplete(acSeasonFrom, new Runnable() {
+        setupAutoComplete(acSeason, new Runnable() {
             @Override
             public void run() {
                 if (ignoreSeason) { ignoreSeason = false; return; }
-                String val = acSeasonFrom.getText().toString().trim();
-                // Đồng bộ Season To với Season From
-                if (!acSeasonTo.getText().toString().trim().equals(val)) {
-                    acSeasonTo.setText(val, false);
-                }
-                reloadStages();
+                reloadStyles();
             }
         });
 
-        setupAutoComplete(acSeasonTo, new Runnable() {
+        setupAutoComplete(acStyleNo, new Runnable() {
             @Override
             public void run() {
                 reloadStages();
@@ -145,15 +141,10 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 hideKeyboard();
-                String rawFrom = acSeasonFrom.getText().toString();
-                String normFrom = normalizeSeason(rawFrom);
-                if (!rawFrom.equals(normFrom)) {
-                    acSeasonFrom.setText(normFrom, false);
-                }
-                String rawTo = acSeasonTo.getText().toString();
-                String normTo = normalizeSeason(rawTo);
-                if (!rawTo.equals(normTo)) {
-                    acSeasonTo.setText(normTo, false);
+                String rawSeason = acSeason.getText().toString();
+                String normSeason = normalizeSeason(rawSeason);
+                if (!rawSeason.equals(normSeason)) {
+                    acSeason.setText(normSeason, false);
                 }
                 new RetrieveCfm().execute();
             }
@@ -164,8 +155,8 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 ignoreSeason = true;
                 ignoreStage = true;
-                acSeasonFrom.setText("", false);
-                acSeasonTo.setText("", false);
+                acSeason.setText("", false);
+                acStyleNo.setText("", false);
                 acStage.setText("", false);
                 acModel.setText("", false);
                 acTeam.setText("", false);
@@ -216,54 +207,60 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void reloadStyles() {
+        String season = normalizeSeason(acSeason.getText().toString().trim());
+        if (season.isEmpty()) season = "%";
+        new LoadStyles().execute(season);
+    }
+
     private void reloadStages() {
-        String seasonFrom = normalizeSeason(acSeasonFrom.getText().toString().trim());
-        String seasonTo   = normalizeSeason(acSeasonTo.getText().toString().trim());
-        if (seasonFrom.isEmpty()) seasonFrom = "%";
-        if (seasonTo.isEmpty()) seasonTo = "%";
-        new LoadStages().execute(seasonFrom, seasonTo);
+        String season = normalizeSeason(acSeason.getText().toString().trim());
+        String style  = acStyleNo.getText().toString().trim();
+        if (season.isEmpty()) season = "%";
+        if (style.isEmpty()) style = "%";
+        new LoadStages().execute(season, style);
     }
 
     private void reloadModels() {
-        String seasonFrom = normalizeSeason(acSeasonFrom.getText().toString().trim());
-        String seasonTo   = normalizeSeason(acSeasonTo.getText().toString().trim());
-        String stage      = acStage.getText().toString().trim();
-        if (seasonFrom.isEmpty()) seasonFrom = "%";
-        if (seasonTo.isEmpty()) seasonTo = "%";
+        String season = normalizeSeason(acSeason.getText().toString().trim());
+        String style  = acStyleNo.getText().toString().trim();
+        String stage  = acStage.getText().toString().trim();
+        if (season.isEmpty()) season = "%";
+        if (style.isEmpty()) style = "%";
         if (stage.isEmpty()) stage = "%";
-        new LoadModels().execute(seasonFrom, seasonTo, stage);
+        new LoadModels().execute(season, style, stage);
     }
 
     private void reloadTeams() {
-        String seasonFrom = normalizeSeason(acSeasonFrom.getText().toString().trim());
-        String seasonTo   = normalizeSeason(acSeasonTo.getText().toString().trim());
-        String stage      = acStage.getText().toString().trim();
-        String model      = acModel.getText().toString().trim();
-        if (seasonFrom.isEmpty()) seasonFrom = "%";
-        if (seasonTo.isEmpty()) seasonTo = "%";
+        String season = normalizeSeason(acSeason.getText().toString().trim());
+        String style  = acStyleNo.getText().toString().trim();
+        String stage  = acStage.getText().toString().trim();
+        String model  = acModel.getText().toString().trim();
+        if (season.isEmpty()) season = "%";
+        if (style.isEmpty()) style = "%";
         if (stage.isEmpty()) stage = "%";
         if (model.isEmpty()) model = "%";
         if (model.contains(" / ")) {
             model = model.split(" / ")[0].trim();
         }
-        new LoadTeams().execute(seasonFrom, seasonTo, stage, model);
+        new LoadTeams().execute(season, style, stage, model);
     }
 
     private void reloadDevs() {
-        String seasonFrom = normalizeSeason(acSeasonFrom.getText().toString().trim());
-        String seasonTo   = normalizeSeason(acSeasonTo.getText().toString().trim());
-        String stage      = acStage.getText().toString().trim();
-        String model      = acModel.getText().toString().trim();
-        if (seasonFrom.isEmpty()) seasonFrom = "%";
-        if (seasonTo.isEmpty()) seasonTo = "%";
+        String season = normalizeSeason(acSeason.getText().toString().trim());
+        String style  = acStyleNo.getText().toString().trim();
+        String stage  = acStage.getText().toString().trim();
+        String model  = acModel.getText().toString().trim();
+        if (season.isEmpty()) season = "%";
+        if (style.isEmpty()) style = "%";
         if (stage.isEmpty()) stage = "%";
         if (model.isEmpty()) model = "%";
         if (model.contains(" / ")) {
             model = model.split(" / ")[0].trim();
         }
-        String team       = acTeam.getText().toString().trim();
+        String team   = acTeam.getText().toString().trim();
         if (team.isEmpty()) team = "%";
-        new LoadDevs().execute(seasonFrom, seasonTo, stage, model, team);
+        new LoadDevs().execute(season, style, stage, model, team);
     }
 
     // ----- Menu khi chon 1 cardview -----
@@ -311,10 +308,48 @@ public class MainActivity extends AppCompatActivity {
             if (error != null) { Toast.makeText(MainActivity.this, error, Toast.LENGTH_LONG).show(); setStatus(error); return; }
             ignoreSeason = true;   // chan phat onItemSelected tu dong do setAdapter
             ArrayAdapter<String> ad = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_dropdown_item_1line, arraySeason);
-            acSeasonFrom.setAdapter(ad);
-            acSeasonTo.setAdapter(ad);
+            acSeason.setAdapter(ad);
             setStatus("San sang.");
-            // Season da co -> nap Stage cho lua chon mac dinh
+            // Season da co -> nap Style cho lua chon mac dinh
+            reloadStyles();
+        }
+    }
+
+    private class LoadStyles extends AsyncTask<String, Void, Void> {
+        private String error = null;
+
+        @Override
+        protected Void doInBackground(String... params) {
+            try {
+                String season = params.length > 0 ? params[0] : "";
+                HttpHandler sh = new HttpHandler();
+                String url = Config.GET_STYLES
+                        + "?season=" + HttpHandler.enc(season);
+                Log.d("Debug", "Styles URL: " + url);
+                String jsonStr = sh.makeServiceCall(url);
+                if (jsonStr == null) { error = "Khong ket noi duoc server (Style)."; return null; }
+                JSONArray arr = new JSONArray(jsonStr);
+                arrayStyleNo.clear();
+                for (int i = 0; i < arr.length(); i++) {
+                    JSONObject c = arr.getJSONObject(i);
+                    String style = c.optString("STYLE_NO", "");
+                    if (!style.isEmpty()) {
+                        arrayStyleNo.add(style);
+                    }
+                }
+            } catch (Exception e) {
+                error = "Loi doc du lieu Style: " + e.toString();
+                Log.e("LoadStyles", error);
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void v) {
+            if (error != null) { Toast.makeText(MainActivity.this, error, Toast.LENGTH_LONG).show(); return; }
+            ArrayAdapter<String> adStyle = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_dropdown_item_1line, arrayStyleNo);
+            acStyleNo.setAdapter(adStyle);
+            // Style da co -> nap tiep Stage
             reloadStages();
         }
     }
@@ -325,12 +360,12 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected Void doInBackground(String... params) {
             try {
-                String seasonFrom = params.length > 0 ? params[0] : "";
-                String seasonTo   = params.length > 1 ? params[1] : "";
+                String season = params.length > 0 ? params[0] : "";
+                String style  = params.length > 1 ? params[1] : "";
                 HttpHandler sh = new HttpHandler();
                 String url = Config.GET_STAGES 
-                        + "?season_from=" + HttpHandler.enc(seasonFrom)
-                        + "&season_to="   + HttpHandler.enc(seasonTo);
+                        + "?season=" + HttpHandler.enc(season)
+                        + "&style="  + HttpHandler.enc(style);
                 Log.d("Debug", "Stages URL: " + url);
                 String jsonStr = sh.makeServiceCall(url);
                 if (jsonStr == null) { error = "Khong ket noi duoc server (Stage)."; return null; }
@@ -364,14 +399,14 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected Void doInBackground(String... params) {
             try {
-                String seasonFrom = params.length > 0 ? params[0] : "";
-                String seasonTo   = params.length > 1 ? params[1] : "";
-                String stage      = params.length > 2 ? params[2] : "";
+                String season = params.length > 0 ? params[0] : "";
+                String style  = params.length > 1 ? params[1] : "";
+                String stage  = params.length > 2 ? params[2] : "";
                 HttpHandler sh = new HttpHandler();
                 String url = Config.GET_MODELS
-                        + "?season_from=" + HttpHandler.enc(seasonFrom)
-                        + "&season_to="   + HttpHandler.enc(seasonTo)
-                        + "&stage="       + HttpHandler.enc(stage);
+                        + "?season=" + HttpHandler.enc(season)
+                        + "&style="  + HttpHandler.enc(style)
+                        + "&stage="  + HttpHandler.enc(stage);
                 Log.d("Debug", "Models URL: " + url);
                 String jsonStr = sh.makeServiceCall(url);
                 if (jsonStr == null) { error = "Khong ket noi duoc server (Model)."; return null; }
@@ -380,8 +415,7 @@ public class MainActivity extends AppCompatActivity {
                 for (int i = 0; i < arr.length(); i++) {
                     JSONObject c = arr.getJSONObject(i);
                     String model = c.optString("MODEL_NAME", "");
-                    String style = c.optString("STYLE_NO", "");
-                    arrayModel.add(style.isEmpty() ? model : (model + " / " + style));
+                    arrayModel.add(model);
                 }
             } catch (Exception e) {
                 error = "Loi doc du lieu Model: " + e.toString();
@@ -393,8 +427,9 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(Void v) {
             if (error != null) { Toast.makeText(MainActivity.this, error, Toast.LENGTH_LONG).show(); return; }
-            ArrayAdapter<String> ad = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_dropdown_item_1line, arrayModel);
-            acModel.setAdapter(ad);
+            ArrayAdapter<String> adModel = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_dropdown_item_1line, arrayModel);
+            acModel.setAdapter(adModel);
+
             // Model da co -> nap tiep Team
             reloadTeams();
         }
@@ -406,16 +441,16 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected Void doInBackground(String... params) {
             try {
-                String seasonFrom = params.length > 0 ? params[0] : "";
-                String seasonTo   = params.length > 1 ? params[1] : "";
-                String stage      = params.length > 2 ? params[2] : "";
-                String model      = params.length > 3 ? params[3] : "";
+                String season = params.length > 0 ? params[0] : "";
+                String style  = params.length > 1 ? params[1] : "";
+                String stage  = params.length > 2 ? params[2] : "";
+                String model  = params.length > 3 ? params[3] : "";
                 HttpHandler sh = new HttpHandler();
                 String url = Config.GET_TEAMS
-                        + "?season_from=" + HttpHandler.enc(seasonFrom)
-                        + "&season_to="   + HttpHandler.enc(seasonTo)
-                        + "&stage="       + HttpHandler.enc(stage)
-                        + "&model="       + HttpHandler.enc(model);
+                        + "?season=" + HttpHandler.enc(season)
+                        + "&style="  + HttpHandler.enc(style)
+                        + "&stage="  + HttpHandler.enc(stage)
+                        + "&model="  + HttpHandler.enc(model);
                 Log.d("Debug", "Teams URL: " + url);
                 String jsonStr = sh.makeServiceCall(url);
                 if (jsonStr == null) { error = "Khong ket noi duoc server (Team)."; return null; }
@@ -448,18 +483,18 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected Void doInBackground(String... params) {
             try {
-                String seasonFrom = params.length > 0 ? params[0] : "";
-                String seasonTo   = params.length > 1 ? params[1] : "";
-                String stage      = params.length > 2 ? params[2] : "";
-                String model      = params.length > 3 ? params[3] : "";
-                String team       = params.length > 4 ? params[4] : "";
+                String season = params.length > 0 ? params[0] : "";
+                String style  = params.length > 1 ? params[1] : "";
+                String stage  = params.length > 2 ? params[2] : "";
+                String model  = params.length > 3 ? params[3] : "";
+                String team   = params.length > 4 ? params[4] : "";
                 HttpHandler sh = new HttpHandler();
                 String url = Config.GET_DEVS
-                        + "?season_from=" + HttpHandler.enc(seasonFrom)
-                        + "&season_to="   + HttpHandler.enc(seasonTo)
-                        + "&stage="       + HttpHandler.enc(stage)
-                        + "&model="       + HttpHandler.enc(model)
-                        + "&team="        + HttpHandler.enc(team);
+                        + "?season=" + HttpHandler.enc(season)
+                        + "&style="  + HttpHandler.enc(style)
+                        + "&stage="  + HttpHandler.enc(stage)
+                        + "&model="  + HttpHandler.enc(model)
+                        + "&team="   + HttpHandler.enc(team);
                 Log.d("Debug", "Devs URL: " + url);
                 String jsonStr = sh.makeServiceCall(url);
                 if (jsonStr == null) { error = "Khong ket noi duoc server (Dev)."; return null; }
@@ -499,15 +534,15 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected Void doInBackground(Void... v) {
             try {
-                String seasonFrom = normalizeSeason(acSeasonFrom.getText().toString().trim());
-                String seasonTo   = normalizeSeason(acSeasonTo.getText().toString().trim());
-                String stage      = acStage.getText().toString().trim();
-                String model      = acModel.getText().toString().trim();
-                String team       = acTeam.getText().toString().trim();
-                String dev        = acDev.getText().toString().trim();
+                String season   = normalizeSeason(acSeason.getText().toString().trim());
+                String styleNo  = acStyleNo.getText().toString().trim();
+                String stage    = acStage.getText().toString().trim();
+                String model    = acModel.getText().toString().trim();
+                String team     = acTeam.getText().toString().trim();
+                String dev      = acDev.getText().toString().trim();
 
-                if (seasonFrom.isEmpty()) seasonFrom = "%";
-                if (seasonTo.isEmpty()) seasonTo = "%";
+                if (season.isEmpty()) season = "%";
+                if (styleNo.isEmpty()) styleNo = "%";
                 if (stage.isEmpty()) stage = "%";
                 if (model.isEmpty()) model = "%";
                 if (model.contains(" / ")) {
@@ -518,8 +553,8 @@ public class MainActivity extends AppCompatActivity {
 
                 HttpHandler sh = new HttpHandler();
                 String url = Config.GET_CFM_LIST
-                        + "?season_from=" + HttpHandler.enc(seasonFrom)
-                        + "&season_to="   + HttpHandler.enc(seasonTo)
+                        + "?season="      + HttpHandler.enc(season)
+                        + "&style_no="    + HttpHandler.enc(styleNo)
                         + "&stage="       + HttpHandler.enc(stage)
                         + "&model="       + HttpHandler.enc(model)
                         + "&team="        + HttpHandler.enc(team)
@@ -589,6 +624,10 @@ public class MainActivity extends AppCompatActivity {
                 if (item.hasPlan == 0) {
                     cfmList.add(item);
                 }
+            } else if (selectedPosition == 3) {
+                if (item.hasPlan == 1 && item.isOverdue == 1) {
+                    cfmList.add(item);
+                }
             }
         }
         adapter.notifyDataSetChanged();
@@ -629,7 +668,7 @@ public class MainActivity extends AppCompatActivity {
                 if (hasFocus) {
                     ac.showDropDown();
                 } else {
-                    if (ac == acSeasonFrom || ac == acSeasonTo) {
+                    if (ac == acSeason) {
                         String rawVal = ac.getText().toString();
                         String normVal = normalizeSeason(rawVal);
                         if (!rawVal.equals(normVal)) {

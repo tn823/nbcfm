@@ -26,6 +26,15 @@
         android:padding="4dp"
         android:textSize="14sp" />
 
+    <CheckBox
+        android:id="@+id/cbHistoryMakeup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Bù"
+        android:textSize="12sp"
+        android:textColor="@color/nb_red"
+        android:layout_marginLeft="8dp" />
+
     <View
         android:layout_width="16dp"
         android:layout_height="match_parent" />
