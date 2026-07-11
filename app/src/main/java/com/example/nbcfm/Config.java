@@ -8,6 +8,9 @@ public class Config {
     // Đổi IP/cổng theo server API của bạn
     public static final String BASE_URL = "http://192.168.1.13/test/arduino/";
 
+    // Kiểm tra cập nhật APK
+    public static final String CHECK_UPDATE = BASE_URL + "application/public/nbcfm/apk_info.json";
+
     // GET danh sách cho combobox
     public static final String GET_SEASONS      = BASE_URL + "getcfmseasons";
     public static final String GET_STAGES       = BASE_URL + "getcfmstages";

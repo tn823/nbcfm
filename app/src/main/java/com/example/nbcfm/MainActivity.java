@@ -177,6 +177,9 @@ public class MainActivity extends AppCompatActivity {
 
         // Chỉ cần nạp Seasons ban đầu. Sau đó chuỗi cascading sẽ tự động tải các spinner còn lại.
         new LoadSeasons().execute();
+
+        // Kiểm tra cập nhật phiên bản mới khi mở app
+        AppUpdater.checkForUpdate(this);
     }
 
     private void setStatus(String msg) {

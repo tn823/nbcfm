@@ -6,12 +6,17 @@ android {
     namespace 'com.example.nbcfm'
     compileSdk 34
 
+    // Tự động tạo Version Code tăng dần theo thời gian (tính theo phút)
+    def currentVersionCode = (System.currentTimeMillis() / 60000).intValue()
+    // Tự động tạo Version Name dạng: 1.0.nămThángNgày.GiờPhút
+    def currentVersionName = "1.0." + new Date().format("yyMMdd.HHmm")
+
     defaultConfig {
         applicationId "com.example.nbcfm"
         minSdk 21
         targetSdk 34
-        versionCode 1
-        versionName "1.0"
+        versionCode currentVersionCode
+        versionName currentVersionName
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -26,7 +31,53 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+
+    // Tự động đổi tên file APK đầu ra thành nbcfm.apk sau khi build
+    applicationVariants.all { variant ->
+        variant.outputs.all {
+            outputFileName = "nbcfm.apk"
+        }
+    }
 }
+
+// Task tự động tạo file JSON apk_info.json chứa thông tin phiên bản mới nhất ngay sau khi build
+tasks.register('generateUpdateJson') {
+    doLast {
+        def vc = android.defaultConfig.versionCode
+        def vn = android.defaultConfig.versionName
+        
+        def jsonContent = """{
+  "version_code": ${vc},
+  "version_name": "${vn}",
+  "apk_url": "http://192.168.1.13/test/arduino/application/public/nbcfm/nbcfm.apk",
+  "changelog": "Cập nhật tự động lúc ${new Date().format("dd/MM/yyyy HH:mm")}"
+}"""
+        
+        // Ghi vào thư mục build của Debug
+        def debugDir = file("build/outputs/apk/debug")
+        if (debugDir.exists() || debugDir.mkdirs()) {
+            def debugJson = file("${debugDir.absolutePath}/apk_info.json")
+            debugJson.write(jsonContent, "UTF-8")
+            println ">>> Đã cập nhật file apk_info.json tại: ${debugJson.absolutePath}"
+        }
+        
+        // Ghi vào thư mục build của Release
+        def releaseDir = file("build/outputs/apk/release")
+        if (releaseDir.exists() || releaseDir.mkdirs()) {
+            def releaseJson = file("${releaseDir.absolutePath}/apk_info.json")
+            releaseJson.write(jsonContent, "UTF-8")
+            println ">>> Đã cập nhật file apk_info.json tại: ${releaseJson.absolutePath}"
+        }
+    }
+}
+
+// Thiết lập tự động chạy tạo JSON sau khi build xong bản Debug hoặc Release
+tasks.configureEach { task ->
+    if (task.name == 'assembleRelease' || task.name == 'assembleDebug') {
+        task.finalizedBy 'generateUpdateJson'
+    }
+}
+
 
 dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.1'
