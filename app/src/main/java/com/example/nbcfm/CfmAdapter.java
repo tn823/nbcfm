@@ -46,17 +46,11 @@ public class CfmAdapter extends RecyclerView.Adapter<CfmAdapter.VH> {
         // Ép kiểu root view sang CardView để đổi màu nền thẻ
         androidx.cardview.widget.CardView cardView = (androidx.cardview.widget.CardView) h.itemView;
         if (it.hasPlan == 1) {
-            if (it.isOverdue == 1) {
-                // Đổi sang màu hồng/đỏ nhạt (#FFEBEF) rất hài hòa khi trễ hạn
-                cardView.setCardBackgroundColor(android.graphics.Color.parseColor("#FFEBEF"));
-                h.tvCfmId.setText("CFM ID: " + it.cfmId + " (Overdue Plan)");
-            } else {
-                // Đổi sang màu xanh lá nhạt (#E8F5E9) khi còn hạn
-                cardView.setCardBackgroundColor(android.graphics.Color.parseColor("#E8F5E9"));
-                h.tvCfmId.setText("CFM ID: " + it.cfmId + " (In-Plan)");
-            }
+            // Màu xanh lá nhạt cho tất cả CFM đã có plan
+            cardView.setCardBackgroundColor(android.graphics.Color.parseColor("#E8F5E9"));
+            h.tvCfmId.setText("CFM ID: " + it.cfmId + " (Has Plan)");
         } else {
-            // Trả về màu trắng mặc định cho các dòng thông thường chưa có kế hoạch
+            // Trả về màu trắng mặc định cho các dòng chưa có kế hoạch
             cardView.setCardBackgroundColor(android.graphics.Color.parseColor("#FFFFFF"));
             h.tvCfmId.setText("CFM ID: " + it.cfmId);
         }

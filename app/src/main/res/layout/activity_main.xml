@@ -40,12 +40,12 @@
                     <androidx.appcompat.widget.AppCompatAutoCompleteTextView
                         android:id="@+id/acSeason"
                         style="@style/FieldSpinner"
-                        android:paddingHorizontal="10dp"
-                        android:textSize="14sp"
-                        android:singleLine="true"
                         android:completionThreshold="1"
+                        android:hint="Season..."
                         android:inputType="text"
-                        android:hint="Season" />
+                        android:paddingHorizontal="10dp"
+                        android:singleLine="true"
+                        android:textSize="14sp" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -62,12 +62,12 @@
                     <androidx.appcompat.widget.AppCompatAutoCompleteTextView
                         android:id="@+id/acStyleNo"
                         style="@style/FieldSpinner"
-                        android:paddingHorizontal="10dp"
-                        android:textSize="14sp"
-                        android:singleLine="true"
                         android:completionThreshold="1"
+                        android:hint="Style..."
                         android:inputType="text"
-                        android:hint="Style No" />
+                        android:paddingHorizontal="10dp"
+                        android:singleLine="true"
+                        android:textSize="14sp" />
                 </LinearLayout>
             </LinearLayout>
 
@@ -91,12 +91,12 @@
                     <androidx.appcompat.widget.AppCompatAutoCompleteTextView
                         android:id="@+id/acStage"
                         style="@style/FieldSpinner"
-                        android:paddingHorizontal="10dp"
-                        android:textSize="14sp"
-                        android:singleLine="true"
                         android:completionThreshold="1"
+                        android:hint="Stage..."
                         android:inputType="text"
-                        android:hint="Stage" />
+                        android:paddingHorizontal="10dp"
+                        android:singleLine="true"
+                        android:textSize="14sp" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -113,12 +113,12 @@
                     <androidx.appcompat.widget.AppCompatAutoCompleteTextView
                         android:id="@+id/acModel"
                         style="@style/FieldSpinner"
-                        android:paddingHorizontal="10dp"
-                        android:textSize="14sp"
-                        android:singleLine="true"
                         android:completionThreshold="1"
+                        android:hint="Model..."
                         android:inputType="text"
-                        android:hint="Model" />
+                        android:paddingHorizontal="10dp"
+                        android:singleLine="true"
+                        android:textSize="14sp" />
                 </LinearLayout>
             </LinearLayout>
 
@@ -147,12 +147,12 @@
                         style="@style/FieldSpinner"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:paddingHorizontal="10dp"
-                        android:textSize="14sp"
-                        android:singleLine="true"
                         android:completionThreshold="1"
+                        android:hint="Team..."
                         android:inputType="text"
-                        android:hint="Team" />
+                        android:paddingHorizontal="10dp"
+                        android:singleLine="true"
+                        android:textSize="14sp" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -174,12 +174,12 @@
                         style="@style/FieldSpinner"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:paddingHorizontal="10dp"
-                        android:textSize="14sp"
-                        android:singleLine="true"
                         android:completionThreshold="1"
+                        android:hint="Dev..."
                         android:inputType="text"
-                        android:hint="Dev" />
+                        android:paddingHorizontal="10dp"
+                        android:singleLine="true"
+                        android:textSize="14sp" />
                 </LinearLayout>
             </LinearLayout>
 

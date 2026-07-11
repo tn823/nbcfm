@@ -140,22 +140,8 @@ public class UpdateProductionActivity extends AppCompatActivity {
     }
 
     private void checkAndSetMakeupCheckbox() {
-        String proc = spinnerProcess.getSelectedItem() != null ? spinnerProcess.getSelectedItem().toString() : "";
-        if (proc.isEmpty() || planData == null || cbMakeup == null) {
-            if (cbMakeup != null) cbMakeup.setChecked(false);
-            return;
-        }
-        String endLimit = planData.optString(proc + "_END", "");
-        if (!endLimit.isEmpty() && !endLimit.equalsIgnoreCase("null")) {
-            try {
-                String today = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(new java.util.Date());
-                cbMakeup.setChecked(today.compareTo(endLimit) > 0);
-            } catch (Exception e) {
-                cbMakeup.setChecked(false);
-            }
-        } else {
-            cbMakeup.setChecked(false);
-        }
+        // [Làm bù đã bị ẩn khỏi giao diện - luôn mặc định là false]
+        if (cbMakeup != null) cbMakeup.setChecked(false);
     }
 
     private void updateProgressUI() {
@@ -234,7 +220,7 @@ public class UpdateProductionActivity extends AppCompatActivity {
                 body.put("CFM_ID", cfmId);
                 body.put("PROCESS", spinnerProcess.getSelectedItem().toString());
                 body.put("QTY", etQty.getText().toString().trim());
-                body.put("PRODUCTION_TYPE", cbMakeup.isChecked() ? "R" : "N");
+                body.put("PRODUCTION_TYPE", "N"); // Làm bù đã bị ẩn - luôn gửi N
 
                 HttpHandler sh = new HttpHandler();
                 String resp = sh.makePostCall(Config.SAVE_CFM_PROD, body.toString());

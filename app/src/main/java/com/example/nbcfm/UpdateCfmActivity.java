@@ -109,6 +109,7 @@ public class UpdateCfmActivity extends AppCompatActivity {
                 tv.setOnClickListener(new View.OnClickListener() {
                     @Override public void onClick(View v) { pickDate(tv); }
                 });
+                setupDateClearButton(tv);
             }
         }
 
@@ -158,6 +159,44 @@ public class UpdateCfmActivity extends AppCompatActivity {
         dlg.show();
     }
 
+    private void setupDateClearButton(final TextView tv) {
+        tv.addTextChangedListener(new android.text.TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (s.length() > 0) {
+                    tv.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_clear, 0);
+                } else {
+                    tv.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
+                }
+            }
+            @Override public void afterTextChanged(android.text.Editable s) {}
+        });
+
+        if (tv.getText().length() > 0) {
+            tv.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_clear, 0);
+        } else {
+            tv.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
+        }
+
+        tv.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, android.view.MotionEvent event) {
+                if (event.getAction() == android.view.MotionEvent.ACTION_UP) {
+                    if (tv.getCompoundDrawables()[2] != null) {
+                        int clearButtonWidth = tv.getCompoundDrawables()[2].getBounds().width();
+                        int xClick = (int) event.getX();
+                        if (xClick >= (tv.getWidth() - tv.getPaddingRight() - clearButtonWidth - 10)) {
+                            tv.setText("");
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+        });
+    }
+
     private int getAccumulatedQty(int procIndex) {
         if (planData == null) return 0;
         String proc = PROCS[procIndex];
@@ -194,6 +233,20 @@ public class UpdateCfmActivity extends AppCompatActivity {
         try {
             limit = Integer.parseInt(qtyWorking);
         } catch (Exception ignored) {}
+
+        // Kiểm tra validation ngày cho từng process (phải có cả ngày bắt đầu và kết thúc)
+        for (int i = 0; i < 4; i++) {
+            String start = dateFields[i][0].getText().toString().trim();
+            String end   = dateFields[i][1].getText().toString().trim();
+            if (start.isEmpty() && !end.isEmpty()) {
+                Toast.makeText(this, PROCS[i] + ": Vui lòng nhập đầy đủ ngày bắt đầu.", Toast.LENGTH_SHORT).show();
+                return false;
+            }
+            if (!start.isEmpty() && end.isEmpty()) {
+                Toast.makeText(this, PROCS[i] + ": Vui lòng nhập đầy đủ ngày kết thúc.", Toast.LENGTH_SHORT).show();
+                return false;
+            }
+        }
 
         for (int i = 0; i < 4; i++) {
             String qtyStr = etQtys[i].getText().toString().trim();
@@ -287,15 +340,9 @@ public class UpdateCfmActivity extends AppCompatActivity {
                 }
             }
             
-            // Auto-detect trễ kế hoạch để tích Checkbox làm bù
-            String today = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(new java.util.Date());
+            // [Làm bù đã bị ẩn khỏi giao diện - luôn mặc định là N]
             for (int i = 0; i < 4; i++) {
-                String end = o != null ? clean(o.optString(PROCS[i] + "_END", "")) : "";
-                if (!end.isEmpty()) {
-                    cbMakeups[i].setChecked(today.compareTo(end) > 0);
-                } else {
-                    cbMakeups[i].setChecked(false);
-                }
+                cbMakeups[i].setChecked(false);
             }
 
             tvStatus.setText("Đã tải dữ liệu thành công.");
@@ -348,7 +395,7 @@ public class UpdateCfmActivity extends AppCompatActivity {
                     String qtyStr = etQtys[i].getText().toString().trim();
                     if (!qtyStr.isEmpty()) {
                         body.put(PROCS[i] + "_QTY", qtyStr);
-                        body.put(PROCS[i] + "_PRODUCTION_TYPE", cbMakeups[i].isChecked() ? "R" : "N");
+                        body.put(PROCS[i] + "_PRODUCTION_TYPE", "N"); // Làm bù đã bị ẩn - luôn gửi N
                         hasProd = true;
                     }
                 }
@@ -392,6 +439,9 @@ public class UpdateCfmActivity extends AppCompatActivity {
             if ("OK".equals(result)) {
                 Toast.makeText(UpdateCfmActivity.this, "Đã cập nhật Kế hoạch & Sản xuất thành công!", Toast.LENGTH_LONG).show();
                 tvStatus.setText("Lưu thành công.");
+
+                // Báo hiệu cho MainActivity biết cần reload danh sách CFM
+                setResult(RESULT_OK);
 
                 // Xóa trắng các ô nhập số lượng mới
                 for (int i = 0; i < 4; i++) {
@@ -481,13 +531,21 @@ public class UpdateCfmActivity extends AppCompatActivity {
                 final String timeStr = item.getString("TIME_STR");
                 final int qty = item.getInt("QTY");
 
-                final View itemView = getLayoutInflater().inflate(R.layout.dialog_history_item, null);
+                final View itemView = getLayoutInflater().inflate(R.layout.dialog_history_item, container, false);
+                TextView tvDate = itemView.findViewById(R.id.tvDate);
                 TextView tvTime = itemView.findViewById(R.id.tvTime);
                 final EditText etQty = itemView.findViewById(R.id.etQty);
                 final android.widget.CheckBox cbHistoryMakeup = itemView.findViewById(R.id.cbHistoryMakeup);
                 ImageButton btnDelete = itemView.findViewById(R.id.btnDelete);
 
-                tvTime.setText(timeStr);
+                if (timeStr != null && timeStr.contains(" ")) {
+                    String[] parts = timeStr.split(" ");
+                    if (tvDate != null) tvDate.setText(parts[0]);
+                    tvTime.setText(parts[1]);
+                } else {
+                    if (tvDate != null) tvDate.setText(timeStr);
+                    tvTime.setText("");
+                }
                 etQty.setText(String.valueOf(qty));
                 cbHistoryMakeup.setChecked("R".equalsIgnoreCase(item.optString("PRODUCTION_TYPE", "")));
 

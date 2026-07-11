@@ -27,6 +27,8 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final int REQUEST_UPDATE_CFM = 1001;
+
     private AutoCompleteTextView acSeason, acStyleNo, acStage, acModel, acTeam, acDev;
     private Spinner spinnerPlanFilter;
     private Button btnRetrieve, btnClearFilter;
@@ -70,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
         tvEmpty       = findViewById(R.id.tvEmpty);
 
         spinnerPlanFilter = findViewById(R.id.spinnerPlanFilter);
-        String[] planFilterOptions = {"Tất cả", "Có Plan", "Chưa có Plan", "Trễ hạn"};
+        String[] planFilterOptions = {"Tất cả", "Có Plan", "Chưa có Plan"};
         ArrayAdapter<String> planFilterAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, planFilterOptions);
         planFilterAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerPlanFilter.setAdapter(planFilterAdapter);
@@ -270,7 +272,16 @@ public class MainActivity extends AppCompatActivity {
         it.putExtra("MODEL_NAME", item.modelName);
         it.putExtra("STYLE_NO", item.styleNo);
         it.putExtra("QTY_WORKING", item.qtyWorking);
-        startActivity(it);
+        startActivityForResult(it, REQUEST_UPDATE_CFM);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, android.content.Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_UPDATE_CFM && resultCode == RESULT_OK) {
+            // Tự động reload lại danh sách CFM sau khi lưu tiến độ thành công
+            new RetrieveCfm().execute();
+        }
     }
 
     // ========================= AsyncTasks =========================
@@ -624,13 +635,10 @@ public class MainActivity extends AppCompatActivity {
                 if (item.hasPlan == 0) {
                     cfmList.add(item);
                 }
-            } else if (selectedPosition == 3) {
-                if (item.hasPlan == 1 && item.isOverdue == 1) {
-                    cfmList.add(item);
-                }
             }
         }
         adapter.notifyDataSetChanged();
+        recyclerView.scrollToPosition(0);
 
         if (cfmList.isEmpty()) {
             tvEmpty.setVisibility(View.VISIBLE);
@@ -658,6 +666,10 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 ac.showDropDown();
+                android.view.inputmethod.InputMethodManager imm = (android.view.inputmethod.InputMethodManager) getSystemService(android.content.Context.INPUT_METHOD_SERVICE);
+                if (imm != null) {
+                    imm.showSoftInput(ac, android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT);
+                }
             }
         });
 
@@ -667,6 +679,10 @@ public class MainActivity extends AppCompatActivity {
             public void onFocusChange(View v, boolean hasFocus) {
                 if (hasFocus) {
                     ac.showDropDown();
+                    android.view.inputmethod.InputMethodManager imm = (android.view.inputmethod.InputMethodManager) getSystemService(android.content.Context.INPUT_METHOD_SERVICE);
+                    if (imm != null) {
+                        imm.showSoftInput(ac, android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT);
+                    }
                 } else {
                     if (ac == acSeason) {
                         String rawVal = ac.getText().toString();
@@ -716,8 +732,21 @@ public class MainActivity extends AppCompatActivity {
                         // Nếu click trong phạm vi nút xóa (bên phải)
                         if (xClick >= (ac.getWidth() - ac.getPaddingRight() - clearButtonWidth - 10)) {
                             ac.setText("", false);
+                            
+                            // Reset bộ lọc của adapter về rỗng ngầm để hiển thị toàn bộ phần tử trong lần click sau
+                            android.widget.ListAdapter adapter = ac.getAdapter();
+                            if (adapter instanceof android.widget.Filterable) {
+                                ((android.widget.Filterable) adapter).getFilter().filter("");
+                            }
+                            
+                            // Đóng dropdown và ẩn bàn phím ảo (vì chỉ là xóa nhanh dữ liệu)
+                            ac.dismissDropDown();
+                            android.view.inputmethod.InputMethodManager imm = (android.view.inputmethod.InputMethodManager) getSystemService(android.content.Context.INPUT_METHOD_SERVICE);
+                            if (imm != null) {
+                                imm.hideSoftInputFromWindow(ac.getWindowToken(), 0);
+                            }
+                            
                             onSelectOrChange.run(); // Chạy lại logic lọc cho các ô phía sau
-                            ac.showDropDown(); // Hiện lại dropdown sau khi xóa
                             return true;
                         }
                     }
@@ -739,4 +768,5 @@ public class MainActivity extends AppCompatActivity {
         }
         return val.toUpperCase();
     }
+
 }

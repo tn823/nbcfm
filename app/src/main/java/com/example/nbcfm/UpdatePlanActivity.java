@@ -1,6 +1,7 @@
 package com.example.nbcfm;
 
 import android.app.DatePickerDialog;
+import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -11,6 +12,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import org.json.JSONObject;
@@ -68,17 +70,38 @@ public class UpdatePlanActivity extends AppCompatActivity {
                 tv.setOnClickListener(new View.OnClickListener() {
                     @Override public void onClick(View v) { pickDate(tv); }
                 });
+                setupDateClearButton(tv);
             }
         }
 
         btnSave.setOnClickListener(new View.OnClickListener() {
-            @Override public void onClick(View v) { new SavePlan().execute(); }
+            @Override public void onClick(View v) {
+                if (validatePlan()) {
+                    new SavePlan().execute();
+                }
+            }
         });
 
         new LoadPlan().execute();
     }
 
     private String safe(String s) { return s == null ? "" : s; }
+
+    private boolean validatePlan() {
+        for (int i = 0; i < 4; i++) {
+            String start = dateFields[i][0].getText().toString().trim();
+            String end   = dateFields[i][1].getText().toString().trim();
+            if (start.isEmpty() && !end.isEmpty()) {
+                Toast.makeText(this, PROCS[i] + ": Vui lòng nhập đầy đủ ngày bắt đầu.", Toast.LENGTH_SHORT).show();
+                return false;
+            }
+            if (!start.isEmpty() && end.isEmpty()) {
+                Toast.makeText(this, PROCS[i] + ": Vui lòng nhập đầy đủ ngày kết thúc.", Toast.LENGTH_SHORT).show();
+                return false;
+            }
+        }
+        return true;
+    }
 
     private void pickDate(final TextView target) {
         Calendar c = Calendar.getInstance();
@@ -96,6 +119,44 @@ public class UpdatePlanActivity extends AppCompatActivity {
             }
         }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH));
         dlg.show();
+    }
+
+    private void setupDateClearButton(final TextView tv) {
+        tv.addTextChangedListener(new android.text.TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (s.length() > 0) {
+                    tv.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_clear, 0);
+                } else {
+                    tv.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
+                }
+            }
+            @Override public void afterTextChanged(android.text.Editable s) {}
+        });
+
+        if (tv.getText().length() > 0) {
+            tv.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_clear, 0);
+        } else {
+            tv.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
+        }
+
+        tv.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, android.view.MotionEvent event) {
+                if (event.getAction() == android.view.MotionEvent.ACTION_UP) {
+                    if (tv.getCompoundDrawables()[2] != null) {
+                        int clearButtonWidth = tv.getCompoundDrawables()[2].getBounds().width();
+                        int xClick = (int) event.getX();
+                        if (xClick >= (tv.getWidth() - tv.getPaddingRight() - clearButtonWidth - 10)) {
+                            tv.setText("");
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+        });
     }
 
     private void showLoading(boolean show) {

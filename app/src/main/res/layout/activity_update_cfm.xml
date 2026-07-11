@@ -87,7 +87,8 @@
                             android:text="Làm bù"
                             android:textSize="11sp"
                             android:textColor="@color/nb_red"
-                            android:layout_marginTop="2dp" />
+                            android:layout_marginTop="2dp"
+                            android:visibility="gone" />
                     </LinearLayout>
                 </LinearLayout>
 
@@ -142,7 +143,8 @@
                             android:text="Làm bù"
                             android:textSize="11sp"
                             android:textColor="@color/nb_red"
-                            android:layout_marginTop="2dp" />
+                            android:layout_marginTop="2dp"
+                            android:visibility="gone" />
                     </LinearLayout>
                 </LinearLayout>
 
@@ -197,7 +199,8 @@
                             android:text="Làm bù"
                             android:textSize="11sp"
                             android:textColor="@color/nb_red"
-                            android:layout_marginTop="2dp" />
+                            android:layout_marginTop="2dp"
+                            android:visibility="gone" />
                     </LinearLayout>
                 </LinearLayout>
 
@@ -252,7 +255,8 @@
                             android:text="Làm bù"
                             android:textSize="11sp"
                             android:textColor="@color/nb_red"
-                            android:layout_marginTop="2dp" />
+                            android:layout_marginTop="2dp"
+                            android:visibility="gone" />
                     </LinearLayout>
                 </LinearLayout>
 
