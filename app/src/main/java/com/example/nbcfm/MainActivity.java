@@ -36,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
     private ShimmerFrameLayout shimmerViewContainer;
     private ProgressBar progressBar;
     private TextView tvStatus, tvEmpty;
+    private View layoutEmpty;
 
     private final ArrayList<String> arraySeason = new ArrayList<>();
     private final ArrayList<String> arrayStage  = new ArrayList<>();
@@ -70,6 +71,7 @@ public class MainActivity extends AppCompatActivity {
         progressBar   = findViewById(R.id.progressBar);
         tvStatus      = findViewById(R.id.tvStatus);
         tvEmpty       = findViewById(R.id.tvEmpty);
+        layoutEmpty   = findViewById(R.id.layoutEmpty);
 
         spinnerPlanFilter = findViewById(R.id.spinnerPlanFilter);
         String[] planFilterOptions = {"Tất cả", "Có Plan", "Chưa có Plan"};
@@ -168,8 +170,9 @@ public class MainActivity extends AppCompatActivity {
                 fullCfmList.clear();
                 spinnerPlanFilter.setSelection(0);
                 adapter.notifyDataSetChanged();
-                tvEmpty.setVisibility(View.GONE);
-                tvStatus.setText("Sẵn sàng.");
+                if (layoutEmpty != null) layoutEmpty.setVisibility(View.GONE);
+                recyclerView.setVisibility(View.VISIBLE);
+                setStatus("Sẵn sàng.");
                 // Gọi chuỗi tải lại dữ liệu từ đầu
                 reloadStages();
             }
@@ -201,6 +204,7 @@ public class MainActivity extends AppCompatActivity {
         btnRetrieve.setEnabled(!show);
         if (shimmerViewContainer != null) {
             if (show) {
+                if (layoutEmpty != null) layoutEmpty.setVisibility(View.GONE);
                 shimmerViewContainer.setVisibility(View.VISIBLE);
                 shimmerViewContainer.startShimmer();
                 recyclerView.setVisibility(View.GONE);
@@ -341,18 +345,18 @@ public class MainActivity extends AppCompatActivity {
                         + "?season=" + HttpHandler.enc(season);
                 Log.d("Debug", "Styles URL: " + url);
                 String jsonStr = sh.makeServiceCall(url);
-                if (jsonStr == null) { error = "Khong ket noi duoc server (Style)."; return null; }
+                if (jsonStr == null) { error = "Không kết nối được máy chủ (Style)."; return null; }
                 JSONArray arr = new JSONArray(jsonStr);
                 arrayStyleNo.clear();
                 for (int i = 0; i < arr.length(); i++) {
                     JSONObject c = arr.getJSONObject(i);
-                    String style = c.optString("STYLE_NO", "");
-                    if (!style.isEmpty()) {
+                    String style = c.optString("STYLE_NO", "").trim();
+                    if (!style.isEmpty() && !arrayStyleNo.contains(style)) {
                         arrayStyleNo.add(style);
                     }
                 }
             } catch (Exception e) {
-                error = "Loi doc du lieu Style: " + e.toString();
+                error = "Lỗi đọc dữ liệu Style: " + e.getMessage();
                 Log.e("LoadStyles", error);
             }
             return null;
@@ -360,12 +364,38 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(Void v) {
-            if (error != null) { Toast.makeText(MainActivity.this, error, Toast.LENGTH_LONG).show(); return; }
+            if (error != null) { Toast.makeText(MainActivity.this, error, Toast.LENGTH_SHORT).show(); return; }
             ArrayAdapter<String> adStyle = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_dropdown_item_1line, arrayStyleNo);
             acStyleNo.setAdapter(adStyle);
-            // Style da co -> nap tiep Stage
             reloadStages();
         }
+    }
+
+    private static final String[] STANDARD_STAGES = {
+        "Pullover", "XTR", "Promotion", "PROTO 0", "GTM 1", "GTM 2",
+        "Line CFM", "Re-Line CFM", "Pro.CFM", "EXT", "PT", "SMS", "PSS", "Wear Test"
+    };
+
+    private String normalizeStageName(String rawStage) {
+        if (rawStage == null) return "";
+        String trimmed = rawStage.trim();
+        for (String std : STANDARD_STAGES) {
+            if (std.equalsIgnoreCase(trimmed)) {
+                return std;
+            }
+        }
+        return trimmed;
+    }
+
+    private boolean isStandardStage(String rawStage) {
+        if (rawStage == null) return false;
+        String trimmed = rawStage.trim();
+        for (String std : STANDARD_STAGES) {
+            if (std.equalsIgnoreCase(trimmed)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private class LoadStages extends AsyncTask<String, Void, Void> {
@@ -376,21 +406,40 @@ public class MainActivity extends AppCompatActivity {
             try {
                 String season = params.length > 0 ? params[0] : "";
                 String style  = params.length > 1 ? params[1] : "";
-                HttpHandler sh = new HttpHandler();
-                String url = Config.GET_STAGES 
-                        + "?season=" + HttpHandler.enc(season)
-                        + "&style="  + HttpHandler.enc(style);
-                Log.d("Debug", "Stages URL: " + url);
-                String jsonStr = sh.makeServiceCall(url);
-                if (jsonStr == null) { error = "Khong ket noi duoc server (Stage)."; return null; }
-                JSONArray arr = new JSONArray(jsonStr);
+
                 arrayStage.clear();
-                for (int i = 0; i < arr.length(); i++) {
-                    JSONObject c = arr.getJSONObject(i);
-                    arrayStage.add(c.optString("CURRENT_STAGE", c.optString("VALUE", "")));
+                java.util.Set<String> seen = new java.util.HashSet<>();
+
+                // 1. Trường hợp chưa lọc Season/Style (%) -> Nạp ĐÚNG và CHỈ 14 công đoạn chuẩn
+                if ((season.isEmpty() || season.equals("%")) && (style.isEmpty() || style.equals("%"))) {
+                    for (String stg : STANDARD_STAGES) {
+                        arrayStage.add(stg);
+                    }
+                } else {
+                    // 2. Trường hợp ĐÃ chọn Season/Style -> Chỉ nạp những công đoạn thuộc 14 chuẩn có trong DB cho Season/Style đó
+                    HttpHandler sh = new HttpHandler();
+                    String url = Config.GET_STAGES 
+                            + "?season=" + HttpHandler.enc(season)
+                            + "&style="  + HttpHandler.enc(style);
+                    Log.d("Debug", "Stages URL: " + url);
+                    String jsonStr = sh.makeServiceCall(url);
+                    if (jsonStr != null) {
+                        JSONArray arr = new JSONArray(jsonStr);
+                        for (int i = 0; i < arr.length(); i++) {
+                            JSONObject c = arr.getJSONObject(i);
+                            String rawVal = c.optString("CURRENT_STAGE", c.optString("VALUE", "")).trim();
+                            if (!rawVal.isEmpty() && isStandardStage(rawVal)) {
+                                String normVal = normalizeStageName(rawVal);
+                                if (!seen.contains(normVal.toUpperCase())) {
+                                    arrayStage.add(normVal);
+                                    seen.add(normVal.toUpperCase());
+                                }
+                            }
+                        }
+                    }
                 }
             } catch (Exception e) {
-                error = "Loi doc du lieu Stage: " + e.toString();
+                error = "Lỗi đọc dữ liệu Stage: " + e.getMessage();
                 Log.e("LoadStages", error);
             }
             return null;
@@ -398,7 +447,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(Void v) {
-            if (error != null) { Toast.makeText(MainActivity.this, error, Toast.LENGTH_LONG).show(); return; }
+            if (error != null) { Toast.makeText(MainActivity.this, error, Toast.LENGTH_SHORT).show(); return; }
             ignoreStage = true;   // chan phat onItemSelected tu dong do setAdapter
             ArrayAdapter<String> ad = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_dropdown_item_1line, arrayStage);
             acStage.setAdapter(ad);
@@ -416,6 +465,7 @@ public class MainActivity extends AppCompatActivity {
                 String season = params.length > 0 ? params[0] : "";
                 String style  = params.length > 1 ? params[1] : "";
                 String stage  = params.length > 2 ? params[2] : "";
+
                 HttpHandler sh = new HttpHandler();
                 String url = Config.GET_MODELS
                         + "?season=" + HttpHandler.enc(season)
@@ -423,16 +473,18 @@ public class MainActivity extends AppCompatActivity {
                         + "&stage="  + HttpHandler.enc(stage);
                 Log.d("Debug", "Models URL: " + url);
                 String jsonStr = sh.makeServiceCall(url);
-                if (jsonStr == null) { error = "Khong ket noi duoc server (Model)."; return null; }
+                if (jsonStr == null) { error = "Không kết nối được máy chủ (Model)."; return null; }
                 JSONArray arr = new JSONArray(jsonStr);
                 arrayModel.clear();
                 for (int i = 0; i < arr.length(); i++) {
                     JSONObject c = arr.getJSONObject(i);
-                    String model = c.optString("MODEL_NAME", "");
-                    arrayModel.add(model);
+                    String model = c.optString("MODEL_NAME", "").trim();
+                    if (!model.isEmpty() && !arrayModel.contains(model)) {
+                        arrayModel.add(model);
+                    }
                 }
             } catch (Exception e) {
-                error = "Loi doc du lieu Model: " + e.toString();
+                error = "Lỗi đọc dữ liệu Model: " + e.getMessage();
                 Log.e("LoadModels", error);
             }
             return null;
@@ -440,10 +492,9 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(Void v) {
-            if (error != null) { Toast.makeText(MainActivity.this, error, Toast.LENGTH_LONG).show(); return; }
+            if (error != null) { Toast.makeText(MainActivity.this, error, Toast.LENGTH_SHORT).show(); return; }
             ArrayAdapter<String> adModel = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_dropdown_item_1line, arrayModel);
             acModel.setAdapter(adModel);
-
             // Model da co -> nap tiep Team
             reloadTeams();
         }
@@ -459,6 +510,7 @@ public class MainActivity extends AppCompatActivity {
                 String style  = params.length > 1 ? params[1] : "";
                 String stage  = params.length > 2 ? params[2] : "";
                 String model  = params.length > 3 ? params[3] : "";
+
                 HttpHandler sh = new HttpHandler();
                 String url = Config.GET_TEAMS
                         + "?season=" + HttpHandler.enc(season)
@@ -467,15 +519,18 @@ public class MainActivity extends AppCompatActivity {
                         + "&model="  + HttpHandler.enc(model);
                 Log.d("Debug", "Teams URL: " + url);
                 String jsonStr = sh.makeServiceCall(url);
-                if (jsonStr == null) { error = "Khong ket noi duoc server (Team)."; return null; }
+                if (jsonStr == null) { error = "Không kết nối được máy chủ (Team)."; return null; }
                 JSONArray arr = new JSONArray(jsonStr);
                 arrayTeam.clear();
                 for (int i = 0; i < arr.length(); i++) {
                     JSONObject c = arr.getJSONObject(i);
-                    arrayTeam.add(c.optString("VS_TEAM", c.optString("VALUE", "")));
+                    String team = c.optString("VS_TEAM", c.optString("VALUE", "")).trim();
+                    if (!team.isEmpty() && !arrayTeam.contains(team)) {
+                        arrayTeam.add(team);
+                    }
                 }
             } catch (Exception e) {
-                error = "Loi doc du lieu Team: " + e.toString();
+                error = "Lỗi đọc dữ liệu Team: " + e.getMessage();
                 Log.e("LoadTeams", error);
             }
             return null;
@@ -483,7 +538,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(Void v) {
-            if (error != null) { Toast.makeText(MainActivity.this, error, Toast.LENGTH_LONG).show(); return; }
+            if (error != null) { Toast.makeText(MainActivity.this, error, Toast.LENGTH_SHORT).show(); return; }
             ArrayAdapter<String> ad = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_dropdown_item_1line, arrayTeam);
             acTeam.setAdapter(ad);
             // Team da co -> nap tiep Dev
@@ -502,6 +557,7 @@ public class MainActivity extends AppCompatActivity {
                 String stage  = params.length > 2 ? params[2] : "";
                 String model  = params.length > 3 ? params[3] : "";
                 String team   = params.length > 4 ? params[4] : "";
+
                 HttpHandler sh = new HttpHandler();
                 String url = Config.GET_DEVS
                         + "?season=" + HttpHandler.enc(season)
@@ -511,15 +567,18 @@ public class MainActivity extends AppCompatActivity {
                         + "&team="   + HttpHandler.enc(team);
                 Log.d("Debug", "Devs URL: " + url);
                 String jsonStr = sh.makeServiceCall(url);
-                if (jsonStr == null) { error = "Khong ket noi duoc server (Dev)."; return null; }
+                if (jsonStr == null) { error = "Không kết nối được máy chủ (Dev)."; return null; }
                 JSONArray arr = new JSONArray(jsonStr);
                 arrayDev.clear();
                 for (int i = 0; i < arr.length(); i++) {
                     JSONObject c = arr.getJSONObject(i);
-                    arrayDev.add(c.optString("VS_DEVELOPER", c.optString("VALUE", "")));
+                    String dev = c.optString("VS_DEVELOPER", c.optString("VALUE", "")).trim();
+                    if (!dev.isEmpty() && !arrayDev.contains(dev)) {
+                        arrayDev.add(dev);
+                    }
                 }
             } catch (Exception e) {
-                error = "Loi doc du lieu Dev: " + e.toString();
+                error = "Lỗi đọc dữ liệu Dev: " + e.getMessage();
                 Log.e("LoadDevs", error);
             }
             return null;
@@ -527,7 +586,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(Void v) {
-            if (error != null) { Toast.makeText(MainActivity.this, error, Toast.LENGTH_LONG).show(); return; }
+            if (error != null) { Toast.makeText(MainActivity.this, error, Toast.LENGTH_SHORT).show(); return; }
             ArrayAdapter<String> ad = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_dropdown_item_1line, arrayDev);
             acDev.setAdapter(ad);
         }
@@ -619,8 +678,9 @@ public class MainActivity extends AppCompatActivity {
         if (fullCfmList.isEmpty()) {
             cfmList.clear();
             adapter.notifyDataSetChanged();
-            tvEmpty.setVisibility(View.VISIBLE);
+            if (layoutEmpty != null) layoutEmpty.setVisibility(View.VISIBLE);
             tvEmpty.setText("Không có dữ liệu.");
+            recyclerView.setVisibility(View.GONE);
             setStatus("Sẵn sàng.");
             return;
         }
@@ -644,11 +704,13 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.scrollToPosition(0);
 
         if (cfmList.isEmpty()) {
-            tvEmpty.setVisibility(View.VISIBLE);
+            if (layoutEmpty != null) layoutEmpty.setVisibility(View.VISIBLE);
             tvEmpty.setText("Không có dữ liệu phù hợp.");
+            recyclerView.setVisibility(View.GONE);
             setStatus("Tổng: 0 CFM.");
         } else {
-            tvEmpty.setVisibility(View.GONE);
+            if (layoutEmpty != null) layoutEmpty.setVisibility(View.GONE);
+            recyclerView.setVisibility(View.VISIBLE);
             setStatus("Tổng: " + cfmList.size() + " CFM.");
         }
     }

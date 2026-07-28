@@ -258,15 +258,34 @@
             android:visibility="gone" />
     </LinearLayout>
 
-    <TextView
-        android:id="@+id/tvEmpty"
+    <LinearLayout
+        android:id="@+id/layoutEmpty"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Không có dữ liệu."
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
         android:gravity="center"
         android:padding="24dp"
-        android:textColor="@color/textSecondary"
-        android:visibility="gone" />
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:src="@drawable/ic_no_data"
+            android:contentDescription="No Data"
+            android:layout_marginBottom="12dp" />
+
+        <TextView
+            android:id="@+id/tvEmpty"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Không có dữ liệu."
+            android:textColor="@color/textSecondary"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:gravity="center" />
+
+    </LinearLayout>
 
     <com.facebook.shimmer.ShimmerFrameLayout
         android:id="@+id/shimmerViewContainer"

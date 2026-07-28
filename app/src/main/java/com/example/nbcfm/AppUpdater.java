@@ -107,7 +107,7 @@ public class AppUpdater {
         DownloadManager.Request request = new DownloadManager.Request(Uri.parse(apkUrl))
             .setTitle("Tải bản cập nhật nbcfm")
             .setDescription("Vui lòng đợi trong giây lát...")
-            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE) // Chỉ hiện khi đang tải, tự ẩn khi xong
             .setDestinationUri(Uri.fromFile(outputFile));
 
         final DownloadManager dm = (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
@@ -120,6 +120,7 @@ public class AppUpdater {
                 long id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1);
                 if (id == downloadId) {
                     activity.unregisterReceiver(this);
+                    dm.remove(downloadId); // Xóa thông báo tải xuống khỏi thanh thông báo
                     installApk(activity, outputFile);
                 }
             }

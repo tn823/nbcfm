@@ -1,0 +1,31 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Folder / Box Outline -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#757575"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M3,7v10c0,1.1 0.9,2 2,2h14c1.1,0 2,-0.9 2,-2V7c0,-1.1 -0.9,-2 -2,-2h-6l-2,-2H5C3.9,3 3,3.9 3,5z" />
+    <!-- Empty document lines inside folder -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#9E9E9E"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round"
+        android:pathData="M8,10h8M8,14h5" />
+    <!-- Exclamation / Search Circle indicator -->
+    <path
+        android:fillColor="#C62828"
+        android:pathData="M18,17.5m-3.5,0a3.5,3.5 0 1,0 7,0a3.5,3.5 0 1,0 -7,0" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.2"
+        android:strokeLineCap="round"
+        android:pathData="M18,16v2M18,19.5v0.5" />
+</vector>

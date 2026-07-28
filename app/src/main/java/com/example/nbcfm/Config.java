@@ -34,6 +34,8 @@ public class Config {
 
     // POST cập nhật tất cả (Kế hoạch & Sản xuất hàng loạt)
     public static final String SAVE_CFM_ALL     = BASE_URL + "savecfmall";
+    // POST cập nhật ghi đè tất cả (Slide 1 Revision 0723)
+    public static final String SAVE_CFM_ALL_OVERWRITE = BASE_URL + "savecfmall_overwrite";
 
     // API Lịch sử sản xuất
     public static final String GET_PROD_HISTORY    = BASE_URL + "getcfmproduction_history";

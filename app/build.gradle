@@ -58,7 +58,7 @@ tasks.register('generateUpdateJson') {
         if (debugDir.exists() || debugDir.mkdirs()) {
             def debugJson = file("${debugDir.absolutePath}/apk_info.json")
             debugJson.write(jsonContent, "UTF-8")
-            println ">>> Đã cập nhật file apk_info.json tại: ${debugJson.absolutePath}"
+            println ">>> Updated file apk_info.json at: ${debugJson.absolutePath}"
         }
         
         // Ghi vào thư mục build của Release
@@ -66,7 +66,7 @@ tasks.register('generateUpdateJson') {
         if (releaseDir.exists() || releaseDir.mkdirs()) {
             def releaseJson = file("${releaseDir.absolutePath}/apk_info.json")
             releaseJson.write(jsonContent, "UTF-8")
-            println ">>> Đã cập nhật file apk_info.json tại: ${releaseJson.absolutePath}"
+            println ">>> Updated file apk_info.json at: ${releaseJson.absolutePath}"
         }
     }
 }

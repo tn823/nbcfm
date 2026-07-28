@@ -113,7 +113,7 @@ public class UpdateCfmActivity extends AppCompatActivity {
             }
         }
 
-        // Ánh xạ các nút Edit sản lượng để mở lịch sử
+        // Ánh xạ các nút Xóa sản lượng (Reset về 0)
         btnEdits[0] = findViewById(R.id.btnAssEdit);
         btnEdits[1] = findViewById(R.id.btnSttEdit);
         btnEdits[2] = findViewById(R.id.btnPrsttEdit);
@@ -121,10 +121,24 @@ public class UpdateCfmActivity extends AppCompatActivity {
 
         for (int i = 0; i < 4; i++) {
             final String proc = PROCS[i];
+            final int index = i;
             btnEdits[i].setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    showHistoryDialog(proc);
+                    new AlertDialog.Builder(UpdateCfmActivity.this)
+                            .setTitle("Xóa sản lượng " + proc)
+                            .setMessage("Bạn có muốn đặt sản lượng quy trình " + proc + " về 0 không?")
+                            .setPositiveButton("XÓA", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    etQtys[index].setText("0");
+                                    if (validateAndSave()) {
+                                        new SaveAllData().execute();
+                                    }
+                                }
+                            })
+                            .setNegativeButton("HỦY", null)
+                            .show();
                 }
             });
         }
@@ -258,13 +272,12 @@ public class UpdateCfmActivity extends AppCompatActivity {
                     Toast.makeText(this, PROCS[i] + ": Số lượng nhập thêm không hợp lệ.", Toast.LENGTH_SHORT).show();
                     return false;
                 }
-                if (inputQty <= 0) {
-                    Toast.makeText(this, PROCS[i] + ": Số lượng nhập thêm phải lớn hơn 0.", Toast.LENGTH_SHORT).show();
+                if (inputQty < 0) {
+                    Toast.makeText(this, PROCS[i] + ": Số lượng không hợp lệ.", Toast.LENGTH_SHORT).show();
                     return false;
                 }
-                int actual = getAccumulatedQty(i);
-                if (limit > 0 && (actual + inputQty) > limit) {
-                    Toast.makeText(this, PROCS[i] + ": Tổng sản lượng (" + (actual + inputQty) + ") vượt quá Qty Working (" + limit + ").", Toast.LENGTH_LONG).show();
+                if (limit > 0 && inputQty > limit) {
+                    Toast.makeText(this, PROCS[i] + ": Số lượng (" + inputQty + ") vượt quá Qty Working (" + limit + ").", Toast.LENGTH_LONG).show();
                     return false;
                 }
             }
@@ -405,8 +418,8 @@ public class UpdateCfmActivity extends AppCompatActivity {
                     return "NO_CHANGES";
                 }
 
-                // Gửi request duy nhất lên server (gọi API savecfmall)
-                String resp = sh.makePostCall(Config.SAVE_CFM_ALL, body.toString());
+                // Gửi request duy nhất lên server (gọi API savecfmall_overwrite ghi đè)
+                String resp = sh.makePostCall(Config.SAVE_CFM_ALL_OVERWRITE, body.toString());
                 if (resp == null) {
                     return "Không kết nối được server.";
                 }

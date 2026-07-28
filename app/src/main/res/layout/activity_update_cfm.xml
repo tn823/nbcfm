@@ -57,12 +57,12 @@
                         android:textColor="@color/textSecondary"
                         android:textSize="13sp"
                         android:textStyle="bold" />
-                    <!-- Nút Bút Chì Hiệu Chỉnh -->
+                    <!-- Nút Xóa Sản Lượng (Reset về 0) -->
                     <ImageButton
                         android:id="@+id/btnAssEdit"
                         android:layout_width="32dp"
                         android:layout_height="32dp"
-                        android:src="@android:drawable/ic_menu_edit"
+                        android:src="@android:drawable/ic_menu_delete"
                         android:background="?android:attr/selectableItemBackgroundBorderless"
                         android:layout_marginRight="8dp"
                         android:tint="@color/nb_red" />
@@ -118,7 +118,7 @@
                         android:id="@+id/btnSttEdit"
                         android:layout_width="32dp"
                         android:layout_height="32dp"
-                        android:src="@android:drawable/ic_menu_edit"
+                        android:src="@android:drawable/ic_menu_delete"
                         android:background="?android:attr/selectableItemBackgroundBorderless"
                         android:layout_marginRight="8dp"
                         android:tint="@color/nb_red" />
@@ -174,7 +174,7 @@
                         android:id="@+id/btnPrsttEdit"
                         android:layout_width="32dp"
                         android:layout_height="32dp"
-                        android:src="@android:drawable/ic_menu_edit"
+                        android:src="@android:drawable/ic_menu_delete"
                         android:background="?android:attr/selectableItemBackgroundBorderless"
                         android:layout_marginRight="8dp"
                         android:tint="@color/nb_red" />
@@ -230,7 +230,7 @@
                         android:id="@+id/btnCutEdit"
                         android:layout_width="32dp"
                         android:layout_height="32dp"
-                        android:src="@android:drawable/ic_menu_edit"
+                        android:src="@android:drawable/ic_menu_delete"
                         android:background="?android:attr/selectableItemBackgroundBorderless"
                         android:layout_marginRight="8dp"
                         android:tint="@color/nb_red" />
