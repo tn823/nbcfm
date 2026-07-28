@@ -17,6 +17,7 @@
         android:orientation="vertical"
         android:padding="12dp">
 
+        <!-- Hàng tiêu đề: CFM ID bên trái + Checkbox bên phải -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -33,6 +34,16 @@
                 android:textColor="@color/nb_red"
                 android:textStyle="bold"
                 android:textSize="15sp" />
+
+            <!-- Checkbox chọn CFM (Slide 2 - Revision 0723) - góc phải dòng CFM ID -->
+            <CheckBox
+                android:id="@+id/cbSelect"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:buttonTint="@color/nb_red"
+                android:focusable="false"
+                android:clickable="true" />
         </LinearLayout>
 
         <!-- HIGHLIGHT CONTAINER: 5 Columns like Dashboard -->

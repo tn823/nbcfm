@@ -28,6 +28,7 @@ public class CfmItem implements Serializable {
     public String qtyShipping  = "";
     public int hasPlan = 0;
     public int isOverdue = 0;
+    public boolean isSelected = false;
 
     public static CfmItem fromJson(JSONObject c) {
         CfmItem it = new CfmItem();

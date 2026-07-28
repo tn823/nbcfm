@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
 
     private AutoCompleteTextView acSeason, acStyleNo, acStage, acModel, acTeam, acDev;
     private Spinner spinnerPlanFilter;
-    private Button btnRetrieve, btnClearFilter;
+    private Button btnRetrieve, btnClearFilter, btnSelectAll, btnDeletePlan;
     private RecyclerView recyclerView;
     private ShimmerFrameLayout shimmerViewContainer;
     private ProgressBar progressBar;
@@ -66,12 +66,32 @@ public class MainActivity extends AppCompatActivity {
         acDev        = findViewById(R.id.acDev);
         btnRetrieve   = findViewById(R.id.btnRetrieve);
         btnClearFilter = findViewById(R.id.btnClearFilter);
+        btnSelectAll  = findViewById(R.id.btnSelectAll);
+        btnDeletePlan = findViewById(R.id.btnDeletePlan);
         recyclerView  = findViewById(R.id.recyclerView);
         shimmerViewContainer = findViewById(R.id.shimmerViewContainer);
         progressBar   = findViewById(R.id.progressBar);
         tvStatus      = findViewById(R.id.tvStatus);
         tvEmpty       = findViewById(R.id.tvEmpty);
         layoutEmpty   = findViewById(R.id.layoutEmpty);
+
+        if (btnSelectAll != null) {
+            btnSelectAll.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    toggleSelectAllHasPlan();
+                }
+            });
+        }
+
+        if (btnDeletePlan != null) {
+            btnDeletePlan.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    confirmAndBulkDeletePlan();
+                }
+            });
+        }
 
         spinnerPlanFilter = findViewById(R.id.spinnerPlanFilter);
         String[] planFilterOptions = {"Tất cả", "Có Plan", "Chưa có Plan"};
@@ -270,6 +290,121 @@ public class MainActivity extends AppCompatActivity {
         String team   = acTeam.getText().toString().trim();
         if (team.isEmpty()) team = "%";
         new LoadDevs().execute(season, style, stage, model, team);
+    }
+
+    // ----- Chức năng Chọn tất cả CFM Has Plan (Slide 2 - Revision 0723) -----
+    private void toggleSelectAllHasPlan() {
+        if (cfmList.isEmpty()) {
+            Toast.makeText(this, "Không có dữ liệu CFM.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Kiểm tra xem đã chọn tất cả CFM có Kế hoạch chưa
+        boolean allSelected = true;
+        int hasPlanCount = 0;
+        for (CfmItem item : cfmList) {
+            if (item.hasPlan == 1) {
+                hasPlanCount++;
+                if (!item.isSelected) {
+                    allSelected = false;
+                }
+            }
+        }
+
+        if (hasPlanCount == 0) {
+            Toast.makeText(this, "Không có CFM nào có Kế hoạch (Has Plan) để chọn.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        boolean targetState = !allSelected;
+        for (CfmItem item : cfmList) {
+            if (item.hasPlan == 1) {
+                item.isSelected = targetState;
+            }
+        }
+
+        adapter.notifyDataSetChanged();
+        Toast.makeText(this, (targetState ? "Đã chọn tất cả " : "Đã bỏ chọn ") + hasPlanCount + " CFM có Kế hoạch.", Toast.LENGTH_SHORT).show();
+    }
+
+    // ----- Chức năng Xóa Kế Hoạch Hàng Loạt (Slide 2 - Revision 0723) -----
+    private void confirmAndBulkDeletePlan() {
+        final ArrayList<String> selectedIds = new ArrayList<>();
+        for (CfmItem item : cfmList) {
+            if (item.hasPlan == 1 && item.isSelected) {
+                selectedIds.add(item.cfmId);
+            }
+        }
+
+        if (selectedIds.isEmpty()) {
+            Toast.makeText(this, "Vui lòng chọn ít nhất 1 CFM (có Plan) để xóa kế hoạch.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        new AlertDialog.Builder(this)
+                .setTitle("Xóa kế hoạch hàng loạt")
+                .setMessage("Bạn có chắc chắn muốn xóa toàn bộ kế hoạch của " + selectedIds.size() + " CFM đã chọn không?")
+                .setPositiveButton("XÓA KẾ HOẠCH", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        new BulkDeletePlanTask(selectedIds).execute();
+                    }
+                })
+                .setNegativeButton("HỦY", null)
+                .show();
+    }
+
+    private class BulkDeletePlanTask extends AsyncTask<Void, Void, String> {
+        private final ArrayList<String> selectedIds;
+        private String error = null;
+
+        public BulkDeletePlanTask(ArrayList<String> selectedIds) {
+            this.selectedIds = selectedIds;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            showLoading(true);
+            setStatus("Đang xóa kế hoạch...");
+        }
+
+        @Override
+        protected String doInBackground(Void... voids) {
+            try {
+                JSONObject body = new JSONObject();
+                JSONArray idsArr = new JSONArray();
+                for (String id : selectedIds) {
+                    idsArr.put(id);
+                }
+                body.put("CFM_IDS", idsArr);
+
+                HttpHandler sh = new HttpHandler();
+                String resp = sh.makePostCall(Config.DELETE_CFM_PLAN_BULK, body.toString());
+                if (resp == null) {
+                    return "Lỗi kết nối server khi xóa kế hoạch.";
+                }
+
+                JSONObject obj = new JSONObject(resp);
+                if (!obj.optString("result", "").equalsIgnoreCase("OK")) {
+                    return obj.optString("msg", "Xóa kế hoạch thất bại.");
+                }
+                return "OK";
+            } catch (Exception e) {
+                return "Lỗi hệ thống: " + e.toString();
+            }
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            showLoading(false);
+            if ("OK".equals(result)) {
+                Toast.makeText(MainActivity.this, "Đã xóa thành công kế hoạch của " + selectedIds.size() + " CFM!", Toast.LENGTH_LONG).show();
+                new RetrieveCfm().execute();
+            } else {
+                Toast.makeText(MainActivity.this, result, Toast.LENGTH_LONG).show();
+                setStatus(result);
+            }
+        }
     }
 
     // ----- Menu khi chon 1 cardview -----

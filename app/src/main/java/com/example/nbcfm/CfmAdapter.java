@@ -63,6 +63,25 @@ public class CfmAdapter extends RecyclerView.Adapter<CfmAdapter.VH> {
         h.tvStyleVal.setText(it.styleNo.isEmpty() ? "-" : it.styleNo);
         h.tvQtyVal.setText(it.qtyWorking.isEmpty() ? "-" : it.qtyWorking);
 
+        // Bind Checkbox (Slide 2 - Revision 0723)
+        h.cbSelect.setOnCheckedChangeListener(null);
+        if (it.hasPlan == 1) {
+            h.cbSelect.setEnabled(true);
+            h.cbSelect.setChecked(it.isSelected);
+        } else {
+            h.cbSelect.setEnabled(false);
+            h.cbSelect.setChecked(false);
+            it.isSelected = false;
+        }
+        h.cbSelect.setOnCheckedChangeListener(new android.widget.CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(android.widget.CompoundButton buttonView, boolean isChecked) {
+                if (it.hasPlan == 1) {
+                    it.isSelected = isChecked;
+                }
+            }
+        });
+
         // Bind secondary details in a clean 2-column grid
         h.tvBrand.setText(formatField("Brand", it.brandCode));
         h.tvGender.setText(formatField("Gender", it.gender));
@@ -103,11 +122,13 @@ public class CfmAdapter extends RecyclerView.Adapter<CfmAdapter.VH> {
     }
 
     static class VH extends RecyclerView.ViewHolder {
+        android.widget.CheckBox cbSelect;
         TextView tvCfmId, tvSeasonVal, tvModelVal, tvStageVal, tvStyleVal, tvQtyVal;
         TextView tvBrand, tvGender, tvLast, tvTpDate, tvMoldNew, tvMoldExist, tvVsDev, tvSiteDev, tvSpecIssue, tvMtlArrived, tvQtyShipping;
 
         VH(@NonNull View v) {
             super(v);
+            cbSelect      = v.findViewById(R.id.cbSelect);
             tvCfmId       = v.findViewById(R.id.tvCfmId);
             tvSeasonVal   = v.findViewById(R.id.tvSeasonVal);
             tvModelVal    = v.findViewById(R.id.tvModelVal);
