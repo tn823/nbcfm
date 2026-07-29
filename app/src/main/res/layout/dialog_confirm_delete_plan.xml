@@ -52,10 +52,9 @@
 
     <!-- Scroll container để chống tràn màn hình -->
     <ScrollView
+        android:id="@+id/scrollViewCfm"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:maxHeight="260dp"
+        android:layout_height="wrap_content"
         android:scrollbars="vertical"
         android:fillViewport="true"
         android:layout_marginBottom="12dp">
