@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/edit_bg"
+    android:padding="8dp"
+    android:layout_marginBottom="8dp">
+
+    <!-- Cụm Tag Cảnh báo + Has Prod Indicator (Nút không cần hiện CFM ID nữa theo yêu cầu) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="4dp">
+
+        <TextView
+            android:id="@+id/tvPreviewProdTag"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="⚠️ ĐÃ CÓ SỐ LIỆU SX"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:textColor="#D32F2F"
+            android:background="#FFEBEE"
+            android:paddingHorizontal="6dp"
+            android:paddingVertical="2dp" />
+    </LinearLayout>
+
+    <!-- HIGHLIGHT CONTAINER: 5 Columns (SEASON | MODEL | STAGE | STYLE | QTY) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@drawable/highlight_bg"
+        android:padding="6dp"
+        android:weightSum="10">
+
+        <!-- Season -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1.5"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="SEASON"
+                android:textSize="9sp"
+                android:textStyle="bold"
+                android:textColor="@color/textSecondary"
+                android:gravity="center_horizontal" />
+            <TextView
+                android:id="@+id/tvSeasonVal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="-"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="@color/textPrimary"
+                android:gravity="center_horizontal"
+                android:layout_marginTop="1dp" />
+        </LinearLayout>
+
+        <!-- Model -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="3.5"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="MODEL"
+                android:textSize="9sp"
+                android:textStyle="bold"
+                android:textColor="@color/textSecondary"
+                android:gravity="center_horizontal" />
+            <TextView
+                android:id="@+id/tvModelVal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="-"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="@color/textPrimary"
+                android:gravity="center_horizontal"
+                android:layout_marginTop="1dp" />
+        </LinearLayout>
+
+        <!-- Stage -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="2.5"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="STAGE"
+                android:textSize="9sp"
+                android:textStyle="bold"
+                android:textColor="@color/textSecondary"
+                android:gravity="center_horizontal" />
+            <TextView
+                android:id="@+id/tvStageVal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="-"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="@color/textPrimary"
+                android:gravity="center_horizontal"
+                android:layout_marginTop="1dp" />
+        </LinearLayout>
+
+        <!-- Style -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1.3"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="STYLE"
+                android:textSize="9sp"
+                android:textStyle="bold"
+                android:textColor="@color/textSecondary"
+                android:gravity="center_horizontal" />
+            <TextView
+                android:id="@+id/tvStyleVal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="-"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="@color/textPrimary"
+                android:gravity="center_horizontal"
+                android:layout_marginTop="1dp" />
+        </LinearLayout>
+
+        <!-- Qty -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1.2"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="QTY"
+                android:textSize="9sp"
+                android:textStyle="bold"
+                android:textColor="@color/textSecondary"
+                android:gravity="center_horizontal" />
+            <TextView
+                android:id="@+id/tvQtyVal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="-"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="@color/nb_red"
+                android:gravity="center_horizontal"
+                android:layout_marginTop="1dp" />
+        </LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>

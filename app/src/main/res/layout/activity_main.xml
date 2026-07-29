@@ -238,7 +238,7 @@
             android:layout_height="34dp"
             android:text="Chọn tất cả"
             android:textSize="11sp"
-            android:textColor="#333333"
+            android:textColor="#FFFFFF"
             android:background="@drawable/edit_bg"
             android:layout_marginEnd="4dp"
             android:paddingHorizontal="8dp" />

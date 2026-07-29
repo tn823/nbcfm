@@ -26,8 +26,9 @@ public class CfmItem implements Serializable {
     public String mtlArrived   = "";
     public String qtyWorking   = "";
     public String qtyShipping  = "";
-    public int hasPlan = 0;
-    public int isOverdue = 0;
+    public int hasPlan    = 0;
+    public int isOverdue  = 0;
+    public int hasProdData = 0;   // 1 nếu CFM đã có số liệu sản xuất thực tế (TRTB_CFM_PROGRESS_TRACKING)
     public boolean isSelected = false;
 
     public static CfmItem fromJson(JSONObject c) {
@@ -49,9 +50,18 @@ public class CfmItem implements Serializable {
         it.mtlArrived    = opt(c, "MTL_ARRIVED");
         it.qtyWorking    = opt(c, "QTY_WORKING");
         it.qtyShipping   = opt(c, "QTY_SHIPPING");
-        it.hasPlan = c.optInt("HAS_PLAN",0);
-        it.isOverdue = c.optInt("IS_OVERDUE",0);
+        it.hasPlan    = c.optInt("HAS_PLAN", 0);
+        it.isOverdue  = c.optInt("IS_OVERDUE", 0);
+        it.hasProdData = c.optInt("HAS_PROD_DATA", 0);  // Từ subquery TRTB_CFM_PROGRESS_TRACKING
         return it;
+    }
+
+    /**
+     * Kiểm tra CFM này đã có số liệu sản xuất thực tế chưa.
+     * Dùng field HAS_PROD_DATA từ DB (subquery TRTB_CFM_PROGRESS_TRACKING) — chính xác.
+     */
+    public boolean hasProductionData() {
+        return hasProdData == 1;
     }
 
     private static String opt(JSONObject c, String key) {

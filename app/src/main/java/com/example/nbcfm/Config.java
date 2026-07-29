@@ -38,6 +38,8 @@ public class Config {
     public static final String SAVE_CFM_ALL_OVERWRITE = BASE_URL + "savecfmall_overwrite";
     // POST xóa kế hoạch hàng loạt (Slide 2 Revision 0723)
     public static final String DELETE_CFM_PLAN_BULK   = BASE_URL + "deletecfmplan_bulk";
+    // POST xóa kế hoạch + reset sản xuất hàng loạt
+    public static final String DELETE_CFM_PLAN_AND_PROD_BULK = BASE_URL + "deletecfmplan_and_prod_bulk";
 
     // API Lịch sử sản xuất
     public static final String GET_PROD_HISTORY    = BASE_URL + "getcfmproduction_history";

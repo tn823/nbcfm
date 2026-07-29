@@ -22,12 +22,22 @@ public class CfmAdapter extends RecyclerView.Adapter<CfmAdapter.VH> {
         void onClick(CfmItem item);
     }
 
+    /** Callback thông báo khi trạng thái checkbox thay đổi (để MainActivity cập nhật button state) */
+    public interface OnSelectionChanged {
+        void onChanged();
+    }
+
     private final List<CfmItem> data;
     private final OnItemClick listener;
+    private OnSelectionChanged selectionChangedListener;
 
     public CfmAdapter(Context ctx, List<CfmItem> data, OnItemClick listener) {
         this.data = data;
         this.listener = listener;
+    }
+
+    public void setOnSelectionChangedListener(OnSelectionChanged l) {
+        this.selectionChangedListener = l;
     }
 
     @NonNull
@@ -68,16 +78,24 @@ public class CfmAdapter extends RecyclerView.Adapter<CfmAdapter.VH> {
         if (it.hasPlan == 1) {
             h.cbSelect.setEnabled(true);
             h.cbSelect.setChecked(it.isSelected);
+            // Màu xanh khi enabled
+            h.cbSelect.setButtonTintList(android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#1565C0")));
         } else {
             h.cbSelect.setEnabled(false);
             h.cbSelect.setChecked(false);
             it.isSelected = false;
+            // Màu xám khi disabled
+            h.cbSelect.setButtonTintList(android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#BDBDBD")));
         }
         h.cbSelect.setOnCheckedChangeListener(new android.widget.CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(android.widget.CompoundButton buttonView, boolean isChecked) {
                 if (it.hasPlan == 1) {
                     it.isSelected = isChecked;
+                    // Thông báo MainActivity cập nhật trạng thái nút
+                    if (selectionChangedListener != null) {
+                        selectionChangedListener.onChanged();
+                    }
                 }
             }
         });
