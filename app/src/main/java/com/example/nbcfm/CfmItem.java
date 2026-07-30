@@ -28,7 +28,7 @@ public class CfmItem implements Serializable {
     public String qtyShipping  = "";
     public int hasPlan    = 0;
     public int isOverdue  = 0;
-    public int hasProdData = 0;   // 1 nếu CFM đã có số liệu sản xuất thực tế (TRTB_CFM_PROGRESS_TRACKING)
+    public int hasProdData = 0;   
     public boolean isSelected = false;
 
     public static CfmItem fromJson(JSONObject c) {
