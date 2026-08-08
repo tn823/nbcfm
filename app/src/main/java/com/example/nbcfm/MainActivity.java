@@ -546,13 +546,8 @@ public class MainActivity extends AppCompatActivity {
         ArrayAdapter<String> adSeason = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_dropdown_item_1line, arraySeason);
         acSeason.setAdapter(adSeason);
 
-        // 2. Nạp 14 công đoạn (Stages) chuẩn
-        arrayStage.clear();
-        for (String stg : STANDARD_STAGES) {
-            arrayStage.add(stg);
-        }
-        ArrayAdapter<String> adStage = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_dropdown_item_1line, arrayStage);
-        acStage.setAdapter(adStage);
+        // 2. Nạp công đoạn (Stages) chuẩn + động từ DB
+        new LoadAllStages().execute();
 
         // 3. Nạp song song toàn bộ Style, Model, Team, Dev độc lập 1 lần từ server
         new LoadAllStyles().execute();
@@ -562,9 +557,64 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private static final String[] STANDARD_STAGES = {
-        "Pullover", "XTR", "Promotion", "PROTO 0", "GTM 1", "GTM 2",
-        "Line CFM", "Re-Line CFM", "Pro.CFM", "EXT", "PT", "SMS", "PSS", "Wear Test"
+        "1ST PROTO", "2ND PROTO", "3RD PROTO", "PROTO 0",
+        "Pullover", "PROJECT CFM", "PRODUCTION CFM",
+        "WEAR TEST", "SALES SAMPLE", "EXT", "XTR"
     };
+
+    private class LoadAllStages extends AsyncTask<Void, Void, Void> {
+        private String error = null;
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            try {
+                HttpHandler sh = new HttpHandler();
+                String url = Config.GET_STAGES; // Gọi API lấy toàn bộ Stages từ DB
+                Log.d("Debug", "Load All Stages URL: " + url);
+                String jsonStr = sh.makeServiceCall(url);
+
+                ArrayList<String> stages = new ArrayList<>();
+                for (String stg : STANDARD_STAGES) {
+                    stages.add(stg);
+                }
+
+                if (jsonStr != null) {
+                    JSONArray arr = new JSONArray(jsonStr);
+                    for (int i = 0; i < arr.length(); i++) {
+                        JSONObject c = arr.getJSONObject(i);
+                        String stage = c.optString("CURRENT_STAGE", "").trim();
+                        if (!stage.isEmpty()) {
+                            boolean exists = false;
+                            for (String s : stages) {
+                                if (s.equalsIgnoreCase(stage) || s.replace(" ", "").equalsIgnoreCase(stage.replace(" ", ""))) {
+                                    exists = true;
+                                    break;
+                                }
+                            }
+                            if (!exists) {
+                                stages.add(stage);
+                            }
+                        }
+                    }
+                }
+
+                arrayStage.clear();
+                arrayStage.addAll(stages);
+            } catch (Exception e) {
+                error = "Lỗi đọc Stage: " + e.getMessage();
+                Log.e("LoadAllStages", error);
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void v) {
+            if (error == null && !arrayStage.isEmpty()) {
+                ArrayAdapter<String> ad = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_dropdown_item_1line, arrayStage);
+                acStage.setAdapter(ad);
+            }
+        }
+    }
 
     private class LoadAllStyles extends AsyncTask<Void, Void, Void> {
         private String error = null;
