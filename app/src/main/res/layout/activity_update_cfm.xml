@@ -12,16 +12,98 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <TextView
-            android:id="@+id/tvTitle"
+        <!-- ================== HEADER CARD ================== -->
+        <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Cập nhật Tiến độ CFM"
-            android:textColor="@color/nb_red"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:paddingBottom="12dp" />
+            app:cardCornerRadius="8dp"
+            app:cardElevation="2dp"
+            app:cardUseCompatPadding="true">
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="14dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:id="@+id/tvTitle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Cập nhật tiến độ CFM"
+                        android:textColor="@color/nb_red"
+                        android:textSize="17sp"
+                        android:textStyle="bold" />
+
+                    <!-- Work Date Picker -->
+                    <LinearLayout
+                        android:id="@+id/btnWorkDate"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:background="@drawable/edit_bg"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="6dp"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <ImageView
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:src="@android:drawable/ic_menu_my_calendar"
+                            android:tint="@color/nb_red"
+                            android:layout_marginEnd="6dp" />
+
+                        <TextView
+                            android:id="@+id/tvWorkDate"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="2026-08-08"
+                            android:textColor="#212529"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginTop="8dp">
+
+                    <TextView
+                        android:id="@+id/tvModelStyle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="MODEL / STYLE"
+                        android:textColor="@color/nb_red"
+                        android:textSize="17sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvRequestedQty"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Requested QTY: 0prs"
+                        android:textColor="#495057"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- ================== PROCESSES CARD ================== -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -37,226 +119,289 @@
 
                 <!-- ================== PROCESS ASS ================== -->
                 <TextView style="@style/ProcLabel" android:text="ASS (ASSEMBLY)" />
-                <LinearLayout style="@style/DateRow">
-                    <TextView android:id="@+id/tvAssStart" style="@style/DateBox" android:hint="Ngày bắt đầu" />
-                    <TextView android:id="@+id/tvAssEnd"   style="@style/DateBox" android:hint="Ngày kết thúc" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="4dp">
+                    <EditText
+                        android:id="@+id/etAssPlan"
+                        android:layout_width="0dp"
+                        android:layout_height="42dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/edit_bg"
+                        android:hint="Kế hoạch hàng ngày"
+                        android:inputType="number"
+                        android:paddingHorizontal="10dp"
+                        android:textSize="13sp"
+                        android:layout_marginEnd="8dp" />
+                    <EditText
+                        android:id="@+id/etAssProd"
+                        android:layout_width="0dp"
+                        android:layout_height="42dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/edit_bg"
+                        android:hint="Sản lượng hoàn thành"
+                        android:inputType="number"
+                        android:paddingHorizontal="10dp"
+                        android:textSize="13sp" />
                 </LinearLayout>
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
-                    android:layout_marginTop="6dp"
-                    android:layout_marginBottom="12dp">
+                    android:layout_marginTop="4dp"
+                    android:layout_marginBottom="14dp">
                     <TextView
-                        android:id="@+id/tvAssProgress"
+                        android:id="@+id/tvAssStatus"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Tích lũy: 0 / 0"
+                        android:text="Hiện trạng: 0 / 0"
                         android:textColor="@color/textSecondary"
-                        android:textSize="13sp"
+                        android:textSize="12sp"
                         android:textStyle="bold" />
-                    <!-- Nút Xóa Sản Lượng (Reset về 0) -->
-                    <ImageButton
-                        android:id="@+id/btnAssEdit"
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:src="@android:drawable/ic_menu_delete"
-                        android:background="?android:attr/selectableItemBackgroundBorderless"
-                        android:layout_marginRight="8dp"
-                        android:tint="@color/nb_red" />
                     <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:gravity="end">
-                        <EditText
-                            android:id="@+id/etAssQty"
-                            android:layout_width="120dp"
-                            android:layout_height="36dp"
-                            android:background="@drawable/edit_bg"
-                            android:hint="+ Nhập thêm Qty"
-                            android:inputType="number"
-                            android:paddingHorizontal="10dp"
-                            android:textSize="13sp" />
-                        <CheckBox
-                            android:id="@+id/cbAssMakeup"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+                        <TextView
+                            android:id="@+id/tvAssAccumulated"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Làm bù"
-                            android:textSize="11sp"
-                            android:textColor="@color/nb_red"
-                            android:layout_marginTop="2dp"
-                            android:visibility="gone" />
+                            android:text="Đã hoàn thành 0 / 0prs"
+                            android:textColor="#2B6CB0"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+                        <ImageView
+                            android:id="@+id/btnAssHistoryDetail"
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
+                            android:src="@android:drawable/ic_dialog_info"
+                            android:tint="#2B6CB0"
+                            android:padding="2dp"
+                            android:layout_marginStart="4dp"
+                            android:background="?android:attr/selectableItemBackgroundBorderless"
+                            android:clickable="true"
+                            android:focusable="true" />
                     </LinearLayout>
                 </LinearLayout>
 
                 <!-- ================== PROCESS STT ================== -->
                 <TextView style="@style/ProcLabel" android:text="STT (STITCHING)" />
-                <LinearLayout style="@style/DateRow">
-                    <TextView android:id="@+id/tvSttStart" style="@style/DateBox" android:hint="Ngày bắt đầu" />
-                    <TextView android:id="@+id/tvSttEnd"   style="@style/DateBox" android:hint="Ngày kết thúc" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="4dp">
+                    <EditText
+                        android:id="@+id/etSttPlan"
+                        android:layout_width="0dp"
+                        android:layout_height="42dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/edit_bg"
+                        android:hint="Kế hoạch hàng ngày"
+                        android:inputType="number"
+                        android:paddingHorizontal="10dp"
+                        android:textSize="13sp"
+                        android:layout_marginEnd="8dp" />
+                    <EditText
+                        android:id="@+id/etSttProd"
+                        android:layout_width="0dp"
+                        android:layout_height="42dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/edit_bg"
+                        android:hint="Sản lượng hoàn thành"
+                        android:inputType="number"
+                        android:paddingHorizontal="10dp"
+                        android:textSize="13sp" />
                 </LinearLayout>
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
-                    android:layout_marginTop="6dp"
-                    android:layout_marginBottom="12dp">
+                    android:layout_marginTop="4dp"
+                    android:layout_marginBottom="14dp">
                     <TextView
-                        android:id="@+id/tvSttProgress"
+                        android:id="@+id/tvSttStatus"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Tích lũy: 0 / 0"
+                        android:text="Hiện trạng: 0 / 0"
                         android:textColor="@color/textSecondary"
-                        android:textSize="13sp"
+                        android:textSize="12sp"
                         android:textStyle="bold" />
-                    <ImageButton
-                        android:id="@+id/btnSttEdit"
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:src="@android:drawable/ic_menu_delete"
-                        android:background="?android:attr/selectableItemBackgroundBorderless"
-                        android:layout_marginRight="8dp"
-                        android:tint="@color/nb_red" />
                     <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:gravity="end">
-                        <EditText
-                            android:id="@+id/etSttQty"
-                            android:layout_width="120dp"
-                            android:layout_height="40dp"
-                            android:background="@drawable/edit_bg"
-                            android:hint="+ Nhập thêm Qty"
-                            android:inputType="number"
-                            android:paddingHorizontal="10dp"
-                            android:textSize="13sp" />
-                        <CheckBox
-                            android:id="@+id/cbSttMakeup"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+                        <TextView
+                            android:id="@+id/tvSttAccumulated"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Làm bù"
-                            android:textSize="11sp"
-                            android:textColor="@color/nb_red"
-                            android:layout_marginTop="2dp"
-                            android:visibility="gone" />
+                            android:text="Đã hoàn thành 0 / 0prs"
+                            android:textColor="#2B6CB0"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+                        <ImageView
+                            android:id="@+id/btnSttHistoryDetail"
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
+                            android:src="@android:drawable/ic_dialog_info"
+                            android:tint="#2B6CB0"
+                            android:padding="2dp"
+                            android:layout_marginStart="4dp"
+                            android:background="?android:attr/selectableItemBackgroundBorderless"
+                            android:clickable="true"
+                            android:focusable="true" />
                     </LinearLayout>
                 </LinearLayout>
 
                 <!-- ================== PROCESS PRSTT ================== -->
                 <TextView style="@style/ProcLabel" android:text="PRSTT (PRE-STITCHING)" />
-                <LinearLayout style="@style/DateRow">
-                    <TextView android:id="@+id/tvPrsttStart" style="@style/DateBox" android:hint="Ngày bắt đầu" />
-                    <TextView android:id="@+id/tvPrsttEnd"   style="@style/DateBox" android:hint="Ngày kết thúc" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="4dp">
+                    <EditText
+                        android:id="@+id/etPrsttPlan"
+                        android:layout_width="0dp"
+                        android:layout_height="42dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/edit_bg"
+                        android:hint="Kế hoạch hàng ngày"
+                        android:inputType="number"
+                        android:paddingHorizontal="10dp"
+                        android:textSize="13sp"
+                        android:layout_marginEnd="8dp" />
+                    <EditText
+                        android:id="@+id/etPrsttProd"
+                        android:layout_width="0dp"
+                        android:layout_height="42dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/edit_bg"
+                        android:hint="Sản lượng hoàn thành"
+                        android:inputType="number"
+                        android:paddingHorizontal="10dp"
+                        android:textSize="13sp" />
                 </LinearLayout>
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
-                    android:layout_marginTop="6dp"
-                    android:layout_marginBottom="12dp">
+                    android:layout_marginTop="4dp"
+                    android:layout_marginBottom="14dp">
                     <TextView
-                        android:id="@+id/tvPrsttProgress"
+                        android:id="@+id/tvPrsttStatus"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Tích lũy: 0 / 0"
+                        android:text="Hiện trạng: 0 / 0"
                         android:textColor="@color/textSecondary"
-                        android:textSize="13sp"
+                        android:textSize="12sp"
                         android:textStyle="bold" />
-                    <ImageButton
-                        android:id="@+id/btnPrsttEdit"
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:src="@android:drawable/ic_menu_delete"
-                        android:background="?android:attr/selectableItemBackgroundBorderless"
-                        android:layout_marginRight="8dp"
-                        android:tint="@color/nb_red" />
                     <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:gravity="end">
-                        <EditText
-                            android:id="@+id/etPrsttQty"
-                            android:layout_width="120dp"
-                            android:layout_height="40dp"
-                            android:background="@drawable/edit_bg"
-                            android:hint="+ Nhập thêm Qty"
-                            android:inputType="number"
-                            android:paddingHorizontal="10dp"
-                            android:textSize="13sp" />
-                        <CheckBox
-                            android:id="@+id/cbPrsttMakeup"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+                        <TextView
+                            android:id="@+id/tvPrsttAccumulated"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Làm bù"
-                            android:textSize="11sp"
-                            android:textColor="@color/nb_red"
-                            android:layout_marginTop="2dp"
-                            android:visibility="gone" />
+                            android:text="Đã hoàn thành 0 / 0prs"
+                            android:textColor="#2B6CB0"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+                        <ImageView
+                            android:id="@+id/btnPrsttHistoryDetail"
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
+                            android:src="@android:drawable/ic_dialog_info"
+                            android:tint="#2B6CB0"
+                            android:padding="2dp"
+                            android:layout_marginStart="4dp"
+                            android:background="?android:attr/selectableItemBackgroundBorderless"
+                            android:clickable="true"
+                            android:focusable="true" />
                     </LinearLayout>
                 </LinearLayout>
 
                 <!-- ================== PROCESS CUT ================== -->
                 <TextView style="@style/ProcLabel" android:text="CUT (CUTTING)" />
-                <LinearLayout style="@style/DateRow">
-                    <TextView android:id="@+id/tvCutStart" style="@style/DateBox" android:hint="Ngày bắt đầu" />
-                    <TextView android:id="@+id/tvCutEnd"   style="@style/DateBox" android:hint="Ngày kết thúc" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="4dp">
+                    <EditText
+                        android:id="@+id/etCutPlan"
+                        android:layout_width="0dp"
+                        android:layout_height="42dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/edit_bg"
+                        android:hint="Kế hoạch hàng ngày"
+                        android:inputType="number"
+                        android:paddingHorizontal="10dp"
+                        android:textSize="13sp"
+                        android:layout_marginEnd="8dp" />
+                    <EditText
+                        android:id="@+id/etCutProd"
+                        android:layout_width="0dp"
+                        android:layout_height="42dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/edit_bg"
+                        android:hint="Sản lượng hoàn thành"
+                        android:inputType="number"
+                        android:paddingHorizontal="10dp"
+                        android:textSize="13sp" />
                 </LinearLayout>
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
-                    android:layout_marginTop="6dp"
-                    android:layout_marginBottom="6dp">
+                    android:layout_marginTop="4dp"
+                    android:layout_marginBottom="4dp">
                     <TextView
-                        android:id="@+id/tvCutProgress"
+                        android:id="@+id/tvCutStatus"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Tích lũy: 0 / 0"
+                        android:text="Hiện trạng: 0 / 0"
                         android:textColor="@color/textSecondary"
-                        android:textSize="13sp"
+                        android:textSize="12sp"
                         android:textStyle="bold" />
-                    <ImageButton
-                        android:id="@+id/btnCutEdit"
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:src="@android:drawable/ic_menu_delete"
-                        android:background="?android:attr/selectableItemBackgroundBorderless"
-                        android:layout_marginRight="8dp"
-                        android:tint="@color/nb_red" />
                     <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:gravity="end">
-                        <EditText
-                            android:id="@+id/etCutQty"
-                            android:layout_width="120dp"
-                            android:layout_height="40dp"
-                            android:background="@drawable/edit_bg"
-                            android:hint="+ Nhập thêm Qty"
-                            android:inputType="number"
-                            android:paddingHorizontal="10dp"
-                            android:textSize="13sp" />
-                        <CheckBox
-                            android:id="@+id/cbCutMakeup"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+                        <TextView
+                            android:id="@+id/tvCutAccumulated"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Làm bù"
-                            android:textSize="11sp"
-                            android:textColor="@color/nb_red"
-                            android:layout_marginTop="2dp"
-                            android:visibility="gone" />
+                            android:text="Đã hoàn thành 0 / 0prs"
+                            android:textColor="#2B6CB0"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+                        <ImageView
+                            android:id="@+id/btnCutHistoryDetail"
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
+                            android:src="@android:drawable/ic_dialog_info"
+                            android:tint="#2B6CB0"
+                            android:padding="2dp"
+                            android:layout_marginStart="4dp"
+                            android:background="?android:attr/selectableItemBackgroundBorderless"
+                            android:clickable="true"
+                            android:focusable="true" />
                     </LinearLayout>
                 </LinearLayout>
 

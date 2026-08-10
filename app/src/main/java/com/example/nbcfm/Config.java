@@ -45,6 +45,11 @@ public class Config {
     public static final String GET_PROD_HISTORY    = BASE_URL + "getcfmproduction_history";
     public static final String SAVE_PROD_HISTORY   = BASE_URL + "savecfmproduction_history";
 
+    // API Revision 0808 (Quản lý Tiến độ hàng ngày mới)
+    public static final String GET_CFM_DAILY_PROGRESS  = BASE_URL + "getcfmdailyprogress";
+    public static final String SAVE_CFM_DAILY_PROGRESS = BASE_URL + "savecfmdailyprogress";
+    public static final String GET_CFM_DAILY_HISTORY  = BASE_URL + "getcfmdailyhistory";
+
     public static final String GET_TEAMS   = BASE_URL + "getcfmteams";
     public static final String GET_DEVS    = BASE_URL + "getcfmdevs";
 

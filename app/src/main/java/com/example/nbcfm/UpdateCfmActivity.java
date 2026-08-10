@@ -4,13 +4,14 @@ import android.app.DatePickerDialog;
 import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
-import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
@@ -18,14 +19,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
-
 import androidx.appcompat.app.AppCompatActivity;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Locale;
 
@@ -34,24 +33,25 @@ public class UpdateCfmActivity extends AppCompatActivity {
     private static final SimpleDateFormat SDF = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
 
     private String cfmId;
-    private String qtyWorking = "0";
-    private JSONObject planData = null;
+    private String selectedWorkDate; // YYYY-MM-DD
+    private int requestedQtyLimit = 0;
+    private String requestedQtyText = "0prs";
 
-    private TextView tvTitle, tvStatus;
+    private TextView tvTitle, tvModelStyle, tvWorkDate, tvRequestedQty, tvStatus;
+    private LinearLayout btnWorkDate;
     private ProgressBar progressBar;
     private Button btnSave;
-    private final ImageButton[] btnEdits = new ImageButton[4]; // Nút edit của [ASS, STT, PRSTT, CUT]
-    private final android.widget.CheckBox[] cbMakeups = new android.widget.CheckBox[4]; // Checkbox làm bù
-
 
     private final String[] PROCS = {"ASS", "STT", "PRSTT", "CUT"};
 
-    // Mảng lưu trữ tham chiếu đến các UI Component để dễ quản lý theo vòng lặp
-    private final TextView[][] dateFields = new TextView[4][2]; // [proc][0=start, 1=end]
-    private final TextView[] tvProgresses = new TextView[4];
-    private final EditText[] etQtys = new EditText[4];
+    private final EditText[] etPlans = new EditText[4];
+    private final EditText[] etProds = new EditText[4];
+    private final TextView[] tvStatuses = new TextView[4];
+    private final TextView[] tvAccumulated = new TextView[4];
+    private final ImageView[] btnHistoryDetails = new ImageView[4];
 
-    private final String[][] initialDates = new String[4][2];
+    private final int[] otherPlanAcc = new int[4];
+    private final int[] otherProdAcc = new int[4];
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,88 +62,78 @@ public class UpdateCfmActivity extends AppCompatActivity {
         cfmId = getIntent().getStringExtra("CFM_ID");
         String model = getIntent().getStringExtra("MODEL_NAME");
         String style = getIntent().getStringExtra("STYLE_NO");
-        String qtyWorkingExtra = getIntent().getStringExtra("QTY_WORKING");
-        if (qtyWorkingExtra != null && !qtyWorkingExtra.trim().isEmpty()) {
-            qtyWorking = qtyWorkingExtra.trim();
-        }
 
-        tvTitle     = findViewById(R.id.tvTitle);
-        tvStatus    = findViewById(R.id.tvStatus);
-        progressBar = findViewById(R.id.progressBar);
-        btnSave     = findViewById(R.id.btnSave);
+        // Ngày mặc định là ngày hôm nay
+        selectedWorkDate = SDF.format(Calendar.getInstance().getTime());
 
-        tvTitle.setText("Cập nhật tiến độ CFM - " + cfmId + "\n" + (model == null ? "" : model) + " / " + (style == null ? "" : style));
+        tvTitle        = findViewById(R.id.tvTitle);
+        tvModelStyle   = findViewById(R.id.tvModelStyle);
+        btnWorkDate    = findViewById(R.id.btnWorkDate);
+        tvWorkDate     = findViewById(R.id.tvWorkDate);
+        tvRequestedQty = findViewById(R.id.tvRequestedQty);
+        tvStatus       = findViewById(R.id.tvStatus);
+        progressBar    = findViewById(R.id.progressBar);
+        btnSave        = findViewById(R.id.btnSave);
 
-        // Ánh xạ các Views của quy trình ASS
-        dateFields[0][0] = findViewById(R.id.tvAssStart);
-        dateFields[0][1] = findViewById(R.id.tvAssEnd);
-        tvProgresses[0]  = findViewById(R.id.tvAssProgress);
-        etQtys[0]        = findViewById(R.id.etAssQty);
-        cbMakeups[0]     = findViewById(R.id.cbAssMakeup);
+        tvTitle.setText("Cập nhật tiến độ CFM - " + cfmId);
+        tvModelStyle.setText((model == null ? "" : model) + " / " + (style == null ? "" : style));
+        tvWorkDate.setText(selectedWorkDate);
 
-        // Ánh xạ các Views của quy trình STT
-        dateFields[1][0] = findViewById(R.id.tvSttStart);
-        dateFields[1][1] = findViewById(R.id.tvSttEnd);
-        tvProgresses[1]  = findViewById(R.id.tvSttProgress);
-        etQtys[1]        = findViewById(R.id.etSttQty);
-        cbMakeups[1]     = findViewById(R.id.cbSttMakeup);
+        // Ánh xạ quy trình ASS
+        etPlans[0]             = findViewById(R.id.etAssPlan);
+        etProds[0]             = findViewById(R.id.etAssProd);
+        tvStatuses[0]          = findViewById(R.id.tvAssStatus);
+        tvAccumulated[0]       = findViewById(R.id.tvAssAccumulated);
+        btnHistoryDetails[0]   = findViewById(R.id.btnAssHistoryDetail);
 
-        // Ánh xạ các Views của quy trình PRSTT
-        dateFields[2][0] = findViewById(R.id.tvPrsttStart);
-        dateFields[2][1] = findViewById(R.id.tvPrsttEnd);
-        tvProgresses[2]  = findViewById(R.id.tvPrsttProgress);
-        etQtys[2]        = findViewById(R.id.etPrsttQty);
-        cbMakeups[2]     = findViewById(R.id.cbPrsttMakeup);
+        // Ánh xạ quy trình STT
+        etPlans[1]             = findViewById(R.id.etSttPlan);
+        etProds[1]             = findViewById(R.id.etSttProd);
+        tvStatuses[1]          = findViewById(R.id.tvSttStatus);
+        tvAccumulated[1]       = findViewById(R.id.tvSttAccumulated);
+        btnHistoryDetails[1]   = findViewById(R.id.btnSttHistoryDetail);
 
-        // Ánh xạ các Views của quy trình CUT
-        dateFields[3][0] = findViewById(R.id.tvCutStart);
-        dateFields[3][1] = findViewById(R.id.tvCutEnd);
-        tvProgresses[3]  = findViewById(R.id.tvCutProgress);
-        etQtys[3]        = findViewById(R.id.etCutQty);
-        cbMakeups[3]     = findViewById(R.id.cbCutMakeup);
+        // Ánh xạ quy trình PRSTT
+        etPlans[2]             = findViewById(R.id.etPrsttPlan);
+        etProds[2]             = findViewById(R.id.etPrsttProd);
+        tvStatuses[2]          = findViewById(R.id.tvPrsttStatus);
+        tvAccumulated[2]       = findViewById(R.id.tvPrsttAccumulated);
+        btnHistoryDetails[2]   = findViewById(R.id.btnPrsttHistoryDetail);
 
-        // Gắn sự kiện chọn ngày khi Click vào TextView ngày bắt đầu / kết thúc
+        // Ánh xạ quy trình CUT
+        etPlans[3]             = findViewById(R.id.etCutPlan);
+        etProds[3]             = findViewById(R.id.etCutProd);
+        tvStatuses[3]          = findViewById(R.id.tvCutStatus);
+        tvAccumulated[3]       = findViewById(R.id.tvCutAccumulated);
+        btnHistoryDetails[3]   = findViewById(R.id.btnCutHistoryDetail);
+
+        // Lắng nghe thay đổi trên các ô nhập để cập nhật live text
         for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < 2; j++) {
-                final TextView tv = dateFields[i][j];
-                tv.setOnClickListener(new View.OnClickListener() {
-                    @Override public void onClick(View v) { pickDate(tv); }
-                });
-                setupDateClearButton(tv);
-            }
-        }
-
-        // Ánh xạ các nút Xóa sản lượng (Reset về 0)
-        btnEdits[0] = findViewById(R.id.btnAssEdit);
-        btnEdits[1] = findViewById(R.id.btnSttEdit);
-        btnEdits[2] = findViewById(R.id.btnPrsttEdit);
-        btnEdits[3] = findViewById(R.id.btnCutEdit);
-
-        for (int i = 0; i < 4; i++) {
-            final String proc = PROCS[i];
             final int index = i;
-            btnEdits[i].setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    new AlertDialog.Builder(UpdateCfmActivity.this)
-                            .setTitle("Xóa sản lượng " + proc)
-                            .setMessage("Bạn có muốn đặt sản lượng quy trình " + proc + " về 0 không?")
-                            .setPositiveButton("XÓA", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    etQtys[index].setText("0");
-                                    if (validateAndSave()) {
-                                        new SaveAllData().execute();
-                                    }
-                                }
-                            })
-                            .setNegativeButton("HỦY", null)
-                            .show();
+            TextWatcher watcher = new TextWatcher() {
+                @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    updateStatusText(index);
+                }
+                @Override public void afterTextChanged(Editable s) {}
+            };
+            etPlans[i].addTextChangedListener(watcher);
+            etProds[i].addTextChangedListener(watcher);
+
+            // Click vào nút Info [i] để xem chi tiết tích lũy theo ngày
+            btnHistoryDetails[i].setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View v) {
+                    showDailyHistoryDialog(PROCS[index]);
                 }
             });
         }
 
-        // Sự kiện khi nhấn nút lưu tất cả
+        // Chọn ngày làm việc
+        btnWorkDate.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) { pickWorkDate(); }
+        });
+
+        // Nút Save All
         btnSave.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View v) {
                 if (validateAndSave()) {
@@ -152,132 +142,94 @@ public class UpdateCfmActivity extends AppCompatActivity {
             }
         });
 
-        // Bắt đầu tải dữ liệu ban đầu từ API
+        // Tải dữ liệu theo ngày
         new LoadAllData().execute();
     }
 
-    private void pickDate(final TextView target) {
-        Calendar c = Calendar.getInstance();
-        String existing = target.getText().toString().trim();
-        if (!existing.isEmpty()) {
-            try { c.setTime(SDF.parse(existing)); } catch (Exception ignored) { }
+    private void updateStatusText(int index) {
+        String planStr = etPlans[index].getText().toString().trim();
+        String prodStr = etProds[index].getText().toString().trim();
+
+        int plan = 0;
+        int prod = 0;
+
+        if (!planStr.isEmpty()) {
+            try { plan = Integer.parseInt(planStr); } catch (Exception ignored) {}
         }
+        if (!prodStr.isEmpty()) {
+            try { prod = Integer.parseInt(prodStr); } catch (Exception ignored) {}
+        }
+
+        tvStatuses[index].setText("Hôm nay (Plan/Prod): " + plan + " / " + prod);
+
+        int totalPlan = otherPlanAcc[index] + plan;
+        int totalProd = otherProdAcc[index] + prod;
+        tvAccumulated[index].setText("Tích lũy (Plan/Prod): " + totalPlan + " / " + totalProd);
+    }
+
+    private void pickWorkDate() {
+        Calendar c = Calendar.getInstance();
+        try { c.setTime(SDF.parse(selectedWorkDate)); } catch (Exception ignored) {}
+
         DatePickerDialog dlg = new DatePickerDialog(this, new DatePickerDialog.OnDateSetListener() {
             @Override
-            public void onDateSet(DatePicker view, int year, int month, int day) {
+            public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
                 Calendar sel = Calendar.getInstance();
-                sel.set(year, month, day);
-                target.setText(SDF.format(sel.getTime()));
+                sel.set(year, month, dayOfMonth);
+                selectedWorkDate = SDF.format(sel.getTime());
+                tvWorkDate.setText(selectedWorkDate);
+
+                // Tải lại dữ liệu theo ngày được chọn
+                new LoadAllData().execute();
             }
         }, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH));
         dlg.show();
     }
 
-    private void setupDateClearButton(final TextView tv) {
-        tv.addTextChangedListener(new android.text.TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (s.length() > 0) {
-                    tv.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_clear, 0);
-                } else {
-                    tv.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
-                }
-            }
-            @Override public void afterTextChanged(android.text.Editable s) {}
-        });
-
-        if (tv.getText().length() > 0) {
-            tv.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_clear, 0);
-        } else {
-            tv.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
-        }
-
-        tv.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, android.view.MotionEvent event) {
-                if (event.getAction() == android.view.MotionEvent.ACTION_UP) {
-                    if (tv.getCompoundDrawables()[2] != null) {
-                        int clearButtonWidth = tv.getCompoundDrawables()[2].getBounds().width();
-                        int xClick = (int) event.getX();
-                        if (xClick >= (tv.getWidth() - tv.getPaddingRight() - clearButtonWidth - 10)) {
-                            tv.setText("");
-                            return true;
-                        }
-                    }
-                }
-                return false;
-            }
-        });
-    }
-
-    private int getAccumulatedQty(int procIndex) {
-        if (planData == null) return 0;
-        String proc = PROCS[procIndex];
-
-        // Lấy số lượng thực tế đã có từ API trả về
-        String actualStr = planData.optString(proc + "_ACTUAL", "");
-        if (actualStr.isEmpty()) actualStr = planData.optString(proc + "_QTY", "");
-        if (actualStr.isEmpty()) actualStr = planData.optString(proc + "_PROD", "");
-
-        if (!actualStr.isEmpty() && !actualStr.equalsIgnoreCase("null")) {
-            try {
-                return (int) Double.parseDouble(actualStr);
-            } catch (Exception e) {
-                return 0;
-            }
-        }
-        return 0;
-    }
-
-    private void updateProgressUI() {
-        int limit = 0;
-        try {
-            limit = Integer.parseInt(qtyWorking);
-        } catch (Exception ignored) {}
-
-        for (int i = 0; i < 4; i++) {
-            int actual = getAccumulatedQty(i);
-            tvProgresses[i].setText("Tích lũy: " + actual + " / " + limit);
-        }
-    }
-
     private boolean validateAndSave() {
-        int limit = 0;
-        try {
-            limit = Integer.parseInt(qtyWorking);
-        } catch (Exception ignored) {}
-
-        // Kiểm tra validation ngày cho từng process (phải có cả ngày bắt đầu và kết thúc)
         for (int i = 0; i < 4; i++) {
-            String start = dateFields[i][0].getText().toString().trim();
-            String end   = dateFields[i][1].getText().toString().trim();
-            if (start.isEmpty() && !end.isEmpty()) {
-                Toast.makeText(this, PROCS[i] + ": Vui lòng nhập đầy đủ ngày bắt đầu.", Toast.LENGTH_SHORT).show();
-                return false;
-            }
-            if (!start.isEmpty() && end.isEmpty()) {
-                Toast.makeText(this, PROCS[i] + ": Vui lòng nhập đầy đủ ngày kết thúc.", Toast.LENGTH_SHORT).show();
-                return false;
-            }
-        }
+            String planStr = etPlans[i].getText().toString().trim();
+            String prodStr = etProds[i].getText().toString().trim();
 
-        for (int i = 0; i < 4; i++) {
-            String qtyStr = etQtys[i].getText().toString().trim();
-            if (!qtyStr.isEmpty()) {
-                int inputQty;
+            int p = 0;
+            int pr = 0;
+
+            if (!planStr.isEmpty()) {
                 try {
-                    inputQty = Integer.parseInt(qtyStr);
+                    p = Integer.parseInt(planStr);
+                    if (p < 0) {
+                        Toast.makeText(this, PROCS[i] + ": Kế hoạch không thể âm.", Toast.LENGTH_SHORT).show();
+                        return false;
+                    }
                 } catch (Exception e) {
-                    Toast.makeText(this, PROCS[i] + ": Số lượng nhập thêm không hợp lệ.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, PROCS[i] + ": Kế hoạch không hợp lệ.", Toast.LENGTH_SHORT).show();
                     return false;
                 }
-                if (inputQty < 0) {
-                    Toast.makeText(this, PROCS[i] + ": Số lượng không hợp lệ.", Toast.LENGTH_SHORT).show();
+            }
+
+            if (!prodStr.isEmpty()) {
+                try {
+                    pr = Integer.parseInt(prodStr);
+                    if (pr < 0) {
+                        Toast.makeText(this, PROCS[i] + ": Sản lượng không thể âm.", Toast.LENGTH_SHORT).show();
+                        return false;
+                    }
+                } catch (Exception e) {
+                    Toast.makeText(this, PROCS[i] + ": Sản lượng không hợp lệ.", Toast.LENGTH_SHORT).show();
                     return false;
                 }
-                if (limit > 0 && inputQty > limit) {
-                    Toast.makeText(this, PROCS[i] + ": Số lượng (" + inputQty + ") vượt quá Qty Working (" + limit + ").", Toast.LENGTH_LONG).show();
+            }
+
+            int newTotalPlan = otherPlanAcc[i] + p;
+            int newTotalProd = otherProdAcc[i] + pr;
+
+            if (requestedQtyLimit > 0) {
+                if (newTotalPlan > requestedQtyLimit) {
+                    Toast.makeText(this, PROCS[i] + ": Tổng Kế hoạch tích lũy (" + newTotalPlan + ") vượt quá Requested QTY (" + requestedQtyLimit + ").", Toast.LENGTH_LONG).show();
+                    return false;
+                }
+                if (newTotalProd > requestedQtyLimit) {
+                    Toast.makeText(this, PROCS[i] + ": Tổng Sản lượng tích lũy (" + newTotalProd + ") vượt quá Requested QTY (" + requestedQtyLimit + ").", Toast.LENGTH_LONG).show();
                     return false;
                 }
             }
@@ -290,21 +242,189 @@ public class UpdateCfmActivity extends AppCompatActivity {
         btnSave.setEnabled(!show);
     }
 
-    // ==================== AsyncTask Tải dữ liệu ban đầu ====================
+    // ==================== Hộp thoại xem chi tiết Tích lũy theo ngày ====================
+    private void showDailyHistoryDialog(final String process) {
+        new LoadDailyHistoryTask(process).execute();
+    }
+
+    private class LoadDailyHistoryTask extends AsyncTask<Void, Void, String> {
+        private final String process;
+
+        public LoadDailyHistoryTask(String process) {
+            this.process = process;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            showLoading(true);
+            tvStatus.setText("Đang tải chi tiết tích lũy cho " + process + "...");
+        }
+
+        @Override
+        protected String doInBackground(Void... voids) {
+            HttpHandler sh = new HttpHandler();
+            String url = Config.GET_CFM_DAILY_HISTORY + "?cfmid=" + HttpHandler.enc(cfmId) + "&process=" + process;
+            return sh.makeServiceCall(url);
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            showLoading(false);
+            if (result == null) {
+                Toast.makeText(UpdateCfmActivity.this, "Lỗi kết nối server khi tải chi tiết.", Toast.LENGTH_SHORT).show();
+                tvStatus.setText("Tải chi tiết thất bại.");
+                return;
+            }
+            try {
+                JSONArray arr = new JSONArray(result);
+                tvStatus.setText("Đã tải chi tiết thành công.");
+                displayDailyHistoryPopup(process, arr);
+            } catch (Exception e) {
+                Toast.makeText(UpdateCfmActivity.this, "Chưa có dữ liệu tích lũy.", Toast.LENGTH_SHORT).show();
+                tvStatus.setText("Không có dữ liệu.");
+            }
+        }
+    }
+
+    private void displayDailyHistoryPopup(String process, JSONArray array) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Chi tiết tích lũy - " + process);
+
+        ScrollView scrollView = new ScrollView(this);
+        LinearLayout container = new LinearLayout(this);
+        container.setOrientation(LinearLayout.VERTICAL);
+        container.setPadding(24, 16, 24, 16);
+        scrollView.addView(container);
+
+        int totalPlan = 0;
+        int totalProd = 0;
+        int len = array.length();
+
+        if (len == 0) {
+            TextView tvEmpty = new TextView(this);
+            tvEmpty.setText("Chưa có lượt nhập kế hoạch/sản lượng nào theo ngày.");
+            tvEmpty.setPadding(0, 24, 0, 24);
+            tvEmpty.setGravity(Gravity.CENTER);
+            container.addView(tvEmpty);
+        } else {
+            // Header bảng
+            LinearLayout headerRow = new LinearLayout(this);
+            headerRow.setOrientation(LinearLayout.HORIZONTAL);
+            headerRow.setPadding(8, 8, 8, 8);
+            headerRow.setBackgroundColor(0xFFE2E8F0);
+
+            TextView hDate = new TextView(this);
+            hDate.setText("Ngày");
+            hDate.setTypeface(null, android.graphics.Typeface.BOLD);
+            hDate.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.2f));
+
+            TextView hPlan = new TextView(this);
+            hPlan.setText("Kế hoạch");
+            hPlan.setTypeface(null, android.graphics.Typeface.BOLD);
+            hPlan.setGravity(Gravity.CENTER);
+            hPlan.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f));
+
+            TextView hProd = new TextView(this);
+            hProd.setText("Thực tế");
+            hProd.setTypeface(null, android.graphics.Typeface.BOLD);
+            hProd.setGravity(Gravity.END);
+            hProd.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f));
+
+            headerRow.addView(hDate);
+            headerRow.addView(hPlan);
+            headerRow.addView(hProd);
+            container.addView(headerRow);
+
+            for (int i = 0; i < len; i++) {
+                try {
+                    JSONObject obj = array.getJSONObject(i);
+                    String workDate = obj.optString("WORK_DATE", "");
+                    int plan = (int) obj.optDouble("PLAN_QTY", 0);
+                    int prod = (int) obj.optDouble("PROD_QTY", 0);
+
+                    totalPlan += plan;
+                    totalProd += prod;
+
+                    LinearLayout row = new LinearLayout(this);
+                    row.setOrientation(LinearLayout.HORIZONTAL);
+                    row.setPadding(8, 12, 8, 12);
+                    if (i % 2 == 1) {
+                        row.setBackgroundColor(0xFFF7FAFC);
+                    }
+
+                    TextView rDate = new TextView(this);
+                    rDate.setText(workDate);
+                    rDate.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.2f));
+
+                    TextView rPlan = new TextView(this);
+                    rPlan.setText(String.valueOf(plan));
+                    rPlan.setGravity(Gravity.CENTER);
+                    rPlan.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f));
+
+                    TextView rProd = new TextView(this);
+                    rProd.setText(String.valueOf(prod));
+                    rProd.setTextColor(0xFF2B6CB0);
+                    rProd.setTypeface(null, android.graphics.Typeface.BOLD);
+                    rProd.setGravity(Gravity.END);
+                    rProd.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f));
+
+                    row.addView(rDate);
+                    row.addView(rPlan);
+                    row.addView(rProd);
+                    container.addView(row);
+                } catch (Exception ignored) {}
+            }
+
+            // Dòng tổng cộng
+            LinearLayout footerRow = new LinearLayout(this);
+            footerRow.setOrientation(LinearLayout.HORIZONTAL);
+            footerRow.setPadding(8, 16, 8, 8);
+
+            TextView fTitle = new TextView(this);
+            fTitle.setText("TỔNG TÍCH LŨY:");
+            fTitle.setTypeface(null, android.graphics.Typeface.BOLD);
+            fTitle.setTextColor(0xFFE53E3E);
+            fTitle.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.2f));
+
+            TextView fPlan = new TextView(this);
+            fPlan.setText(String.valueOf(totalPlan));
+            fPlan.setTypeface(null, android.graphics.Typeface.BOLD);
+            fPlan.setGravity(Gravity.CENTER);
+            fPlan.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f));
+
+            TextView fProd = new TextView(this);
+            fProd.setText(totalProd + " / " + requestedQtyText);
+            fProd.setTypeface(null, android.graphics.Typeface.BOLD);
+            fProd.setTextColor(0xFF2B6CB0);
+            fProd.setGravity(Gravity.END);
+            fProd.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f));
+
+            footerRow.addView(fTitle);
+            footerRow.addView(fPlan);
+            footerRow.addView(fProd);
+            container.addView(footerRow);
+        }
+
+        builder.setView(scrollView);
+        builder.setPositiveButton("ĐÓNG", null);
+        builder.show();
+    }
+
+    // ==================== AsyncTask Tải dữ liệu tiến độ ngày chọn ====================
     private class LoadAllData extends AsyncTask<Void, Void, JSONObject> {
         private String error = null;
 
         @Override
         protected void onPreExecute() {
             showLoading(true);
-            tvStatus.setText("Đang tải dữ liệu hiện tại...");
+            tvStatus.setText("Đang tải dữ liệu tiến độ cho ngày " + selectedWorkDate + "...");
         }
 
         @Override
         protected JSONObject doInBackground(Void... v) {
             try {
                 HttpHandler sh = new HttpHandler();
-                String url = Config.GET_CFM_PLAN + "?cfmid=" + HttpHandler.enc(cfmId);
+                String url = Config.GET_CFM_DAILY_PROGRESS + "?cfmid=" + HttpHandler.enc(cfmId) + "&workdate=" + HttpHandler.enc(selectedWorkDate);
                 String jsonStr = sh.makeServiceCall(url);
                 if (jsonStr == null) {
                     error = "Không kết nối được server.";
@@ -331,52 +451,54 @@ public class UpdateCfmActivity extends AppCompatActivity {
                 tvStatus.setText(error);
                 return;
             }
-            planData = o;
+
             if (o != null) {
-                // Đổ dữ liệu ngày kế hoạch hiện tại vào các ô và lưu ngày ban đầu
+                requestedQtyText = o.optString("REQUESTED_QTY", "0");
+                tvRequestedQty.setText("Requested QTY: " + requestedQtyText);
+                try {
+                    requestedQtyLimit = Integer.parseInt(requestedQtyText.replaceAll("[^0-9]", ""));
+                } catch (Exception e) {
+                    requestedQtyLimit = 0;
+                }
+
                 for (int i = 0; i < 4; i++) {
-                    String start = clean(o.optString(PROCS[i] + "_START", ""));
-                    String end = clean(o.optString(PROCS[i] + "_END", ""));
-                    
-                    dateFields[i][0].setText(start);
-                    dateFields[i][1].setText(end);
-                    
-                    // Lưu lại ngày gốc
-                    initialDates[i][0] = start;
-                    initialDates[i][1] = end;
+                    String p = PROCS[i];
+                    double planVal     = o.optDouble(p + "_PLAN", 0);
+                    double prodVal     = o.optDouble(p + "_PROD", 0);
+                    double planAccVal  = o.optDouble(p + "_PLAN_ACC", 0);
+                    double prodAccVal  = o.optDouble(p + "_ACCUMULATED", 0);
+
+                    otherPlanAcc[i] = (int) Math.max(0, planAccVal - planVal);
+                    otherProdAcc[i] = (int) Math.max(0, prodAccVal - prodVal);
+
+                    etPlans[i].setText(planVal > 0 ? String.valueOf((int) planVal) : "");
+                    etProds[i].setText(prodVal > 0 ? String.valueOf((int) prodVal) : "");
+                    updateStatusText(i);
                 }
             } else {
-                // Nếu chưa có kế hoạch nào, đặt ngày gốc là chuỗi rỗng
+                tvRequestedQty.setText("Requested QTY: 0prs");
+                requestedQtyLimit = 0;
                 for (int i = 0; i < 4; i++) {
-                    initialDates[i][0] = "";
-                    initialDates[i][1] = "";
+                    otherPlanAcc[i] = 0;
+                    otherProdAcc[i] = 0;
+                    etPlans[i].setText("");
+                    etProds[i].setText("");
+                    updateStatusText(i);
                 }
             }
-            
-            // [Làm bù đã bị ẩn khỏi giao diện - luôn mặc định là N]
-            for (int i = 0; i < 4; i++) {
-                cbMakeups[i].setChecked(false);
-            }
 
-            tvStatus.setText("Đã tải dữ liệu thành công.");
-            updateProgressUI();
-        }
-
-
-        private String clean(String s) {
-            if (s == null || s.equalsIgnoreCase("null")) return "";
-            return s;
+            tvStatus.setText("Đã tải dữ liệu thành công cho ngày " + selectedWorkDate);
         }
     }
 
-    // ==================== AsyncTask Lưu thông tin (Batch Save) ====================
+    // ==================== AsyncTask Lưu thông tin ====================
     private class SaveAllData extends AsyncTask<Void, Void, String> {
         private String error = null;
 
         @Override
         protected void onPreExecute() {
             showLoading(true);
-            tvStatus.setText("Đang lưu dữ liệu tiến độ...");
+            tvStatus.setText("Đang lưu tiến độ ngày " + selectedWorkDate + "...");
         }
 
         @Override
@@ -385,50 +507,26 @@ public class UpdateCfmActivity extends AppCompatActivity {
             try {
                 JSONObject body = new JSONObject();
                 body.put("CFM_ID", cfmId);
+                body.put("WORK_DATE", selectedWorkDate.replace("-", "")); // YYYYMMDD
 
-                // 1. So sánh ngày kế hoạch hiện tại với ban đầu, có thay đổi mới gửi lên
-                boolean planChanged = false;
                 for (int i = 0; i < 4; i++) {
-                    String currentStart = dateFields[i][0].getText().toString().trim();
-                    String currentEnd   = dateFields[i][1].getText().toString().trim();
-                    String initStart    = initialDates[i][0];
-                    String initEnd      = initialDates[i][1];
+                    String planStr = etPlans[i].getText().toString().trim();
+                    String prodStr = etProds[i].getText().toString().trim();
 
-                    // Nếu ngày bắt đầu hoặc ngày kết thúc khác ngày ban đầu
-                    if (!currentStart.equals(initStart) || !currentEnd.equals(initEnd)) {
-                        body.put(PROCS[i] + "_START", currentStart);
-                        body.put(PROCS[i] + "_END",   currentEnd);
-                        planChanged = true;
-                    }
+                    body.put(PROCS[i] + "_PLAN", planStr.isEmpty() ? 0 : Integer.parseInt(planStr));
+                    body.put(PROCS[i] + "_PROD", prodStr.isEmpty() ? 0 : Integer.parseInt(prodStr));
                 }
 
-                // 2. Thêm số lượng sản lượng nhập thêm nếu có
-                boolean hasProd = false;
-                for (int i = 0; i < 4; i++) {
-                    String qtyStr = etQtys[i].getText().toString().trim();
-                    if (!qtyStr.isEmpty()) {
-                        body.put(PROCS[i] + "_QTY", qtyStr);
-                        body.put(PROCS[i] + "_PRODUCTION_TYPE", "N"); // Làm bù đã bị ẩn - luôn gửi N
-                        hasProd = true;
-                    }
-                }
-
-                // Nếu không có bất kỳ ngày nào đổi và cũng không nhập thêm số lượng
-                if (!planChanged && !hasProd) {
-                    return "NO_CHANGES";
-                }
-
-                // Gửi request duy nhất lên server (gọi API savecfmall_overwrite ghi đè)
-                String resp = sh.makePostCall(Config.SAVE_CFM_ALL_OVERWRITE, body.toString());
+                String resp = sh.makePostCall(Config.SAVE_CFM_DAILY_PROGRESS, body.toString());
                 if (resp == null) {
                     return "Không kết nối được server.";
                 }
-                
+
                 JSONObject respObj = new JSONObject(resp);
                 if (!respObj.optString("result", "").equalsIgnoreCase("OK")) {
                     return respObj.optString("msg", "Lưu thất bại.");
                 }
-                
+
                 return "OK";
             } catch (Exception e) {
                 error = "Lỗi hệ thống khi lưu: " + e.toString();
@@ -444,24 +542,11 @@ public class UpdateCfmActivity extends AppCompatActivity {
                 tvStatus.setText(error);
                 return;
             }
-            if ("NO_CHANGES".equals(result)) {
-                Toast.makeText(UpdateCfmActivity.this, "Không có thay đổi nào để lưu.", Toast.LENGTH_SHORT).show();
-                tvStatus.setText("Không có thay đổi.");
-                return;
-            }
+
             if ("OK".equals(result)) {
-                Toast.makeText(UpdateCfmActivity.this, "Đã cập nhật Kế hoạch & Sản xuất thành công!", Toast.LENGTH_LONG).show();
+                Toast.makeText(UpdateCfmActivity.this, "Đã lưu thành công tiến độ ngày " + selectedWorkDate + "!", Toast.LENGTH_LONG).show();
                 tvStatus.setText("Lưu thành công.");
-
-                // Báo hiệu cho MainActivity biết cần reload danh sách CFM
                 setResult(RESULT_OK);
-
-                // Xóa trắng các ô nhập số lượng mới
-                for (int i = 0; i < 4; i++) {
-                    etQtys[i].setText("");
-                }
-
-                // Tải lại dữ liệu mới để cập nhật UI
                 new LoadAllData().execute();
             } else {
                 Toast.makeText(UpdateCfmActivity.this, result, Toast.LENGTH_LONG).show();
@@ -469,219 +554,4 @@ public class UpdateCfmActivity extends AppCompatActivity {
             }
         }
     }
-
-    private void showHistoryDialog(final String process) {
-        new LoadHistoryTask(process).execute();
-    }
-
-    private class LoadHistoryTask extends AsyncTask<Void, Void, String> {
-        private final String process;
-        private String error = null;
-
-        public LoadHistoryTask(String process) {
-            this.process = process;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            showLoading(true);
-            tvStatus.setText("Đang tải lịch sử cho " + process + "...");
-        }
-
-        @Override
-        protected String doInBackground(Void... voids) {
-            HttpHandler sh = new HttpHandler();
-            String url = Config.GET_PROD_HISTORY + "?cfmid=" + HttpHandler.enc(cfmId) + "&process=" + process;
-            return sh.makeServiceCall(url);
-        }
-
-        @Override
-        protected void onPostExecute(String result) {
-            showLoading(false);
-            if (result == null) {
-                Toast.makeText(UpdateCfmActivity.this, "Lỗi kết nối server khi tải lịch sử.", Toast.LENGTH_SHORT).show();
-                tvStatus.setText("Tải lịch sử thất bại.");
-                return;
-            }
-            try {
-                JSONArray arr = new JSONArray(result);
-                tvStatus.setText("Đã tải dữ liệu thành công.");
-                displayHistoryDialog(process, arr);
-            } catch (Exception e) {
-                Toast.makeText(UpdateCfmActivity.this, "Không có lịch sử nhập hoặc lỗi xử lý: " + e.toString(), Toast.LENGTH_SHORT).show();
-                tvStatus.setText("Lỗi hiển thị lịch sử.");
-            }
-        }
-    }
-
-    private void displayHistoryDialog(final String process, final JSONArray historyArray) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Cập nhật số lượng - " + process);
-
-        ScrollView scrollView = new ScrollView(this);
-        final LinearLayout container = new LinearLayout(this);
-        container.setOrientation(LinearLayout.VERTICAL);
-        container.setPadding(32, 16, 32, 16);
-        scrollView.addView(container);
-
-        final ArrayList<String> deletedGathers = new ArrayList<>();
-        final int len = historyArray.length();
-
-        if (len == 0) {
-            TextView tvNoData = new TextView(this);
-            tvNoData.setText("Chưa có lượt nhập nào trong hệ thống.");
-            tvNoData.setPadding(0, 32, 0, 32);
-            tvNoData.setGravity(Gravity.CENTER);
-            container.addView(tvNoData);
-        }
-
-        final ArrayList<View> itemViews = new ArrayList<>();
-
-        for (int i = 0; i < len; i++) {
-            try {
-                final JSONObject item = historyArray.getJSONObject(i);
-                final String gather = item.getString("G_GATHER");
-                final String timeStr = item.getString("TIME_STR");
-                final int qty = item.getInt("QTY");
-
-                final View itemView = getLayoutInflater().inflate(R.layout.dialog_history_item, container, false);
-                TextView tvDate = itemView.findViewById(R.id.tvDate);
-                TextView tvTime = itemView.findViewById(R.id.tvTime);
-                final EditText etQty = itemView.findViewById(R.id.etQty);
-                final android.widget.CheckBox cbHistoryMakeup = itemView.findViewById(R.id.cbHistoryMakeup);
-                ImageButton btnDelete = itemView.findViewById(R.id.btnDelete);
-
-                if (timeStr != null && timeStr.contains(" ")) {
-                    String[] parts = timeStr.split(" ");
-                    if (tvDate != null) tvDate.setText(parts[0]);
-                    tvTime.setText(parts[1]);
-                } else {
-                    if (tvDate != null) tvDate.setText(timeStr);
-                    tvTime.setText("");
-                }
-                etQty.setText(String.valueOf(qty));
-                cbHistoryMakeup.setChecked("R".equalsIgnoreCase(item.optString("PRODUCTION_TYPE", "")));
-
-                itemView.setTag(item);
-                itemViews.add(itemView);
-
-                btnDelete.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        container.removeView(itemView);
-                        itemViews.remove(itemView);
-                        deletedGathers.add(gather);
-                    }
-                });
-
-                container.addView(itemView);
-            } catch (Exception ignored) {}
-        }
-
-        builder.setView(scrollView);
-
-        builder.setPositiveButton("LƯU", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                JSONArray updates = new JSONArray();
-                JSONArray deletes = new JSONArray();
-
-                for (String del : deletedGathers) {
-                    deletes.put(del);
-                }
-
-                for (View v : itemViews) {
-                    try {
-                        JSONObject orig = (JSONObject) v.getTag();
-                        String gather = orig.getString("G_GATHER");
-                        int origQty = orig.getInt("QTY");
-
-                        EditText etQty = v.findViewById(R.id.etQty);
-                        android.widget.CheckBox cbHistoryMakeup = v.findViewById(R.id.cbHistoryMakeup);
-                        String newQtyStr = etQty.getText().toString().trim();
-                        if (newQtyStr.isEmpty()) continue;
-
-                        int newQty = Integer.parseInt(newQtyStr);
-                        boolean isChecked = cbHistoryMakeup.isChecked();
-                        String origType = orig.optString("PRODUCTION_TYPE", "N");
-                        boolean typeChanged = (isChecked && !"R".equals(origType)) || (!isChecked && "R".equals(origType));
-
-                        if (newQty != origQty || typeChanged) {
-                            JSONObject upd = new JSONObject();
-                            upd.put("G_GATHER", gather);
-                            upd.put("QTY", newQty);
-                            upd.put("PRODUCTION_TYPE", isChecked ? "R" : "N");
-                            updates.put(upd);
-                        }
-                    } catch (Exception ignored) {}
-                }
-
-                if (updates.length() == 0 && deletes.length() == 0) {
-                    Toast.makeText(UpdateCfmActivity.this, "Không có thay đổi nào.", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                new SaveHistoryTask(process, updates, deletes).execute();
-            }
-        });
-
-        builder.setNegativeButton("HỦY", null);
-        builder.show();
-    }
-
-    private class SaveHistoryTask extends AsyncTask<Void, Void, String> {
-        private final String process;
-        private final JSONArray updates;
-        private final JSONArray deletes;
-
-        public SaveHistoryTask(String process, JSONArray updates, JSONArray deletes) {
-            this.process = process;
-            this.updates = updates;
-            this.deletes = deletes;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            showLoading(true);
-            tvStatus.setText("Đang hiệu chỉnh lịch sử...");
-        }
-
-        @Override
-        protected String doInBackground(Void... voids) {
-            try {
-                JSONObject body = new JSONObject();
-                body.put("CFM_ID", cfmId);
-                body.put("PROCESS", process);
-                body.put("UPDATES", updates);
-                body.put("DELETES", deletes);
-
-                HttpHandler sh = new HttpHandler();
-                String resp = sh.makePostCall(Config.SAVE_PROD_HISTORY, body.toString());
-                if (resp == null) {
-                    return "Lỗi kết nối server.";
-                }
-                JSONObject obj = new JSONObject(resp);
-                if (!obj.optString("result", "").equalsIgnoreCase("OK")) {
-                    return obj.optString("msg", "Sửa đổi lịch sử thất bại.");
-                }
-                return "OK";
-            } catch (Exception e) {
-                return "Lỗi hệ thống: " + e.toString();
-            }
-        }
-
-        @Override
-        protected void onPostExecute(String result) {
-            showLoading(false);
-            if ("OK".equals(result)) {
-                Toast.makeText(UpdateCfmActivity.this, "Đã hiệu chỉnh lịch sử thành công!", Toast.LENGTH_SHORT).show();
-                tvStatus.setText("Hiệu chỉnh thành công.");
-                new LoadAllData().execute();
-            } else {
-                Toast.makeText(UpdateCfmActivity.this, result, Toast.LENGTH_LONG).show();
-                tvStatus.setText(result);
-            }
-        }
-    }
-
 }

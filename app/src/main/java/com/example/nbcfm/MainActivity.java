@@ -300,7 +300,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // Tạo Custom Dialog
-        final androidx.appcompat.app.AlertDialog dialog = new androidx.appcompat.app.AlertDialog.Builder(this).create();
+        final AlertDialog dialog = new AlertDialog.Builder(this).create();
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_confirm_delete_plan, null);
         dialog.setView(dialogView);
 
