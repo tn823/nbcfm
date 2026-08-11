@@ -33,6 +33,8 @@ public class UpdateCfmActivity extends AppCompatActivity {
     private static final SimpleDateFormat SDF = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
 
     private String cfmId;
+    private String modelName = "";
+    private String styleNo = "";
     private String selectedWorkDate; // YYYY-MM-DD
     private int requestedQtyLimit = 0;
     private String requestedQtyText = "0prs";
@@ -60,8 +62,10 @@ public class UpdateCfmActivity extends AppCompatActivity {
 
         // Nhận dữ liệu truyền qua từ MainActivity
         cfmId = getIntent().getStringExtra("CFM_ID");
-        String model = getIntent().getStringExtra("MODEL_NAME");
-        String style = getIntent().getStringExtra("STYLE_NO");
+        String m = getIntent().getStringExtra("MODEL_NAME");
+        String s = getIntent().getStringExtra("STYLE_NO");
+        modelName = m != null ? m : "";
+        styleNo = s != null ? s : "";
 
         // Ngày mặc định là ngày hôm nay
         selectedWorkDate = SDF.format(Calendar.getInstance().getTime());
@@ -76,7 +80,7 @@ public class UpdateCfmActivity extends AppCompatActivity {
         btnSave        = findViewById(R.id.btnSave);
 
         tvTitle.setText("Cập nhật tiến độ CFM - " + cfmId);
-        tvModelStyle.setText((model == null ? "" : model) + " / " + (style == null ? "" : style));
+        tvModelStyle.setText(modelName + " / " + styleNo);
         tvWorkDate.setText(selectedWorkDate);
 
         // Ánh xạ quy trình ASS
@@ -160,11 +164,11 @@ public class UpdateCfmActivity extends AppCompatActivity {
             try { prod = Integer.parseInt(prodStr); } catch (Exception ignored) {}
         }
 
-        tvStatuses[index].setText("Hôm nay (Plan/Prod): " + plan + " / " + prod);
+        tvStatuses[index].setText("Hôm nay (KH/SX): " + plan + " / " + prod);
 
         int totalPlan = otherPlanAcc[index] + plan;
         int totalProd = otherProdAcc[index] + prod;
-        tvAccumulated[index].setText("Tích lũy (Plan/Prod): " + totalPlan + " / " + totalProd);
+        tvAccumulated[index].setText("Tích lũy (KH/SX): " + totalPlan + " / " + totalProd);
     }
 
     private void pickWorkDate() {
@@ -288,49 +292,155 @@ public class UpdateCfmActivity extends AppCompatActivity {
 
     private void displayDailyHistoryPopup(String process, JSONArray array) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Chi tiết tích lũy - " + process);
 
-        ScrollView scrollView = new ScrollView(this);
-        LinearLayout container = new LinearLayout(this);
-        container.setOrientation(LinearLayout.VERTICAL);
-        container.setPadding(24, 16, 24, 16);
-        scrollView.addView(container);
+        LinearLayout mainLayout = new LinearLayout(this);
+        mainLayout.setOrientation(LinearLayout.VERTICAL);
 
+        // 1. Header Banner
+        LinearLayout headerCard = new LinearLayout(this);
+        headerCard.setOrientation(LinearLayout.VERTICAL);
+        headerCard.setPadding(24, 20, 24, 20);
+        headerCard.setBackgroundColor(0xFF1E293B);
+
+        TextView tvHeaderTitle = new TextView(this);
+        tvHeaderTitle.setText("Chi tiết tích lũy - " + process);
+        tvHeaderTitle.setTextColor(0xFFFFFFFF);
+        tvHeaderTitle.setTextSize(16);
+        tvHeaderTitle.setTypeface(null, android.graphics.Typeface.BOLD);
+
+        TextView tvHeaderSub = new TextView(this);
+        tvHeaderSub.setText("Model: " + modelName + "  |  Style: " + styleNo + "  |  Requested QTY: " + requestedQtyText);
+        tvHeaderSub.setTextColor(0xFF94A3B8);
+        tvHeaderSub.setTextSize(12);
+        tvHeaderSub.setPadding(0, 4, 0, 0);
+
+        headerCard.addView(tvHeaderTitle);
+        headerCard.addView(tvHeaderSub);
+        mainLayout.addView(headerCard);
+
+        // 2. Stat Summary Cards
         int totalPlan = 0;
         int totalProd = 0;
         int len = array.length();
 
+        for (int i = 0; i < len; i++) {
+            try {
+                JSONObject obj = array.getJSONObject(i);
+                totalPlan += (int) obj.optDouble("PLAN_QTY", 0);
+                totalProd += (int) obj.optDouble("PROD_QTY", 0);
+            } catch (Exception ignored) {}
+        }
+
+        LinearLayout statRow = new LinearLayout(this);
+        statRow.setOrientation(LinearLayout.HORIZONTAL);
+        statRow.setPadding(20, 14, 20, 14);
+        statRow.setBackgroundColor(0xFFF1F5F9);
+
+        // Stat 1: Plan
+        LinearLayout boxPlan = new LinearLayout(this);
+        boxPlan.setOrientation(LinearLayout.VERTICAL);
+        boxPlan.setPadding(14, 10, 14, 10);
+        boxPlan.setBackgroundColor(0xFFFFFFFF);
+        LinearLayout.LayoutParams lp1 = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f);
+        lp1.setMargins(0, 0, 6, 0);
+        boxPlan.setLayoutParams(lp1);
+
+        TextView lblP = new TextView(this);
+        lblP.setText("TỔNG KẾ HOẠCH");
+        lblP.setTextSize(11);
+        lblP.setTextColor(0xFF64748B);
+        lblP.setTypeface(null, android.graphics.Typeface.BOLD);
+
+        TextView valP = new TextView(this);
+        valP.setText(String.valueOf(totalPlan));
+        valP.setTextSize(16);
+        valP.setTextColor(0xFF0F172A);
+        valP.setTypeface(null, android.graphics.Typeface.BOLD);
+
+        boxPlan.addView(lblP);
+        boxPlan.addView(valP);
+
+        // Stat 2: Prod
+        LinearLayout boxProd = new LinearLayout(this);
+        boxProd.setOrientation(LinearLayout.VERTICAL);
+        boxProd.setPadding(14, 10, 14, 10);
+        boxProd.setBackgroundColor(0xFFFFFFFF);
+        LinearLayout.LayoutParams lp2 = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f);
+        lp2.setMargins(6, 0, 0, 0);
+        boxProd.setLayoutParams(lp2);
+
+        TextView lblPr = new TextView(this);
+        lblPr.setText("TỔNG SẢN XUẤT");
+        lblPr.setTextSize(11);
+        lblPr.setTextColor(0xFF64748B);
+        lblPr.setTypeface(null, android.graphics.Typeface.BOLD);
+
+        TextView valPr = new TextView(this);
+        valPr.setText(totalProd + " / " + requestedQtyText);
+        valPr.setTextSize(16);
+        valPr.setTextColor(0xFF0284C7);
+        valPr.setTypeface(null, android.graphics.Typeface.BOLD);
+
+        boxProd.addView(lblPr);
+        boxProd.addView(valPr);
+
+        statRow.addView(boxPlan);
+        statRow.addView(boxProd);
+        mainLayout.addView(statRow);
+
+        // 3. Scrollable Content List
+        ScrollView scrollView = new ScrollView(this);
+        LinearLayout container = new LinearLayout(this);
+        container.setOrientation(LinearLayout.VERTICAL);
+        container.setPadding(16, 12, 16, 16);
+        scrollView.addView(container);
+
         if (len == 0) {
             TextView tvEmpty = new TextView(this);
-            tvEmpty.setText("Chưa có lượt nhập kế hoạch/sản lượng nào theo ngày.");
-            tvEmpty.setPadding(0, 24, 0, 24);
+            tvEmpty.setText("Chưa có lượt nhập kế hoạch / sản lượng nào.");
+            tvEmpty.setPadding(0, 32, 0, 32);
+            tvEmpty.setTextColor(0xFF64748B);
             tvEmpty.setGravity(Gravity.CENTER);
             container.addView(tvEmpty);
         } else {
-            // Header bảng
+            // Header Row
             LinearLayout headerRow = new LinearLayout(this);
             headerRow.setOrientation(LinearLayout.HORIZONTAL);
-            headerRow.setPadding(8, 8, 8, 8);
+            headerRow.setPadding(12, 10, 12, 10);
             headerRow.setBackgroundColor(0xFFE2E8F0);
 
             TextView hDate = new TextView(this);
             hDate.setText("Ngày");
             hDate.setTypeface(null, android.graphics.Typeface.BOLD);
+            hDate.setTextSize(12);
+            hDate.setTextColor(0xFF334155);
             hDate.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.2f));
+
+            TextView hTime = new TextView(this);
+            hTime.setText("Thời gian");
+            hTime.setTypeface(null, android.graphics.Typeface.BOLD);
+            hTime.setTextSize(12);
+            hTime.setTextColor(0xFF334155);
+            hTime.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.3f));
 
             TextView hPlan = new TextView(this);
             hPlan.setText("Kế hoạch");
             hPlan.setTypeface(null, android.graphics.Typeface.BOLD);
+            hPlan.setTextSize(12);
+            hPlan.setTextColor(0xFF334155);
             hPlan.setGravity(Gravity.CENTER);
-            hPlan.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f));
+            hPlan.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 0.9f));
 
             TextView hProd = new TextView(this);
-            hProd.setText("Thực tế");
+            hProd.setText("Sản xuất");
             hProd.setTypeface(null, android.graphics.Typeface.BOLD);
+            hProd.setTextSize(12);
+            hProd.setTextColor(0xFF334155);
             hProd.setGravity(Gravity.END);
-            hProd.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f));
+            hProd.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 0.9f));
 
             headerRow.addView(hDate);
+            headerRow.addView(hTime);
             headerRow.addView(hPlan);
             headerRow.addView(hProd);
             container.addView(headerRow);
@@ -339,73 +449,60 @@ public class UpdateCfmActivity extends AppCompatActivity {
                 try {
                     JSONObject obj = array.getJSONObject(i);
                     String workDate = obj.optString("WORK_DATE", "");
+                    String timeStr = obj.optString("TIME_STR", "--:--");
                     int plan = (int) obj.optDouble("PLAN_QTY", 0);
                     int prod = (int) obj.optDouble("PROD_QTY", 0);
 
-                    totalPlan += plan;
-                    totalProd += prod;
-
                     LinearLayout row = new LinearLayout(this);
                     row.setOrientation(LinearLayout.HORIZONTAL);
-                    row.setPadding(8, 12, 8, 12);
+                    row.setPadding(12, 12, 12, 12);
+                    row.setGravity(Gravity.CENTER_VERTICAL);
                     if (i % 2 == 1) {
-                        row.setBackgroundColor(0xFFF7FAFC);
+                        row.setBackgroundColor(0xFFF8FAFC);
+                    } else {
+                        row.setBackgroundColor(0xFFFFFFFF);
                     }
 
                     TextView rDate = new TextView(this);
                     rDate.setText(workDate);
+                    rDate.setTextSize(13);
+                    rDate.setTextColor(0xFF1E293B);
+                    rDate.setTypeface(null, android.graphics.Typeface.BOLD);
                     rDate.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.2f));
+
+                    TextView rTime = new TextView(this);
+                    rTime.setText(timeStr.length() > 8 ? timeStr.substring(timeStr.indexOf(" ") + 1) : timeStr);
+                    rTime.setTextSize(12);
+                    rTime.setTextColor(0xFF64748B);
+                    rTime.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.3f));
 
                     TextView rPlan = new TextView(this);
                     rPlan.setText(String.valueOf(plan));
+                    rPlan.setTextSize(13);
+                    rPlan.setTextColor(0xFF475569);
                     rPlan.setGravity(Gravity.CENTER);
-                    rPlan.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f));
+                    rPlan.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 0.9f));
 
                     TextView rProd = new TextView(this);
                     rProd.setText(String.valueOf(prod));
-                    rProd.setTextColor(0xFF2B6CB0);
-                    rProd.setTypeface(null, android.graphics.Typeface.BOLD);
+                    rProd.setTextSize(13);
+                    rProd.setTextColor(prod > 0 ? 0xFF0284C7 : 0xFF94A3B8);
+                    rProd.setTypeface(null, prod > 0 ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
                     rProd.setGravity(Gravity.END);
-                    rProd.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f));
+                    rProd.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 0.9f));
 
                     row.addView(rDate);
+                    row.addView(rTime);
                     row.addView(rPlan);
                     row.addView(rProd);
                     container.addView(row);
                 } catch (Exception ignored) {}
             }
-
-            // Dòng tổng cộng
-            LinearLayout footerRow = new LinearLayout(this);
-            footerRow.setOrientation(LinearLayout.HORIZONTAL);
-            footerRow.setPadding(8, 16, 8, 8);
-
-            TextView fTitle = new TextView(this);
-            fTitle.setText("TỔNG TÍCH LŨY:");
-            fTitle.setTypeface(null, android.graphics.Typeface.BOLD);
-            fTitle.setTextColor(0xFFE53E3E);
-            fTitle.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.2f));
-
-            TextView fPlan = new TextView(this);
-            fPlan.setText(String.valueOf(totalPlan));
-            fPlan.setTypeface(null, android.graphics.Typeface.BOLD);
-            fPlan.setGravity(Gravity.CENTER);
-            fPlan.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f));
-
-            TextView fProd = new TextView(this);
-            fProd.setText(totalProd + " / " + requestedQtyText);
-            fProd.setTypeface(null, android.graphics.Typeface.BOLD);
-            fProd.setTextColor(0xFF2B6CB0);
-            fProd.setGravity(Gravity.END);
-            fProd.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f));
-
-            footerRow.addView(fTitle);
-            footerRow.addView(fPlan);
-            footerRow.addView(fProd);
-            container.addView(footerRow);
         }
 
-        builder.setView(scrollView);
+        mainLayout.addView(scrollView);
+
+        builder.setView(mainLayout);
         builder.setPositiveButton("ĐÓNG", null);
         builder.show();
     }
@@ -513,8 +610,12 @@ public class UpdateCfmActivity extends AppCompatActivity {
                     String planStr = etPlans[i].getText().toString().trim();
                     String prodStr = etProds[i].getText().toString().trim();
 
-                    body.put(PROCS[i] + "_PLAN", planStr.isEmpty() ? 0 : Integer.parseInt(planStr));
-                    body.put(PROCS[i] + "_PROD", prodStr.isEmpty() ? 0 : Integer.parseInt(prodStr));
+                    if (!planStr.isEmpty()) {
+                        body.put(PROCS[i] + "_PLAN", Integer.parseInt(planStr));
+                    }
+                    if (!prodStr.isEmpty()) {
+                        body.put(PROCS[i] + "_PROD", Integer.parseInt(prodStr));
+                    }
                 }
 
                 String resp = sh.makePostCall(Config.SAVE_CFM_DAILY_PROGRESS, body.toString());
