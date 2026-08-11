@@ -64,4 +64,13 @@
         <item name="android:focusable">true</item>
     </style>
 
+    <style name="OutlinedInputField" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense">
+        <item name="boxCornerRadiusTopStart">8dp</item>
+        <item name="boxCornerRadiusTopEnd">8dp</item>
+        <item name="boxCornerRadiusBottomStart">8dp</item>
+        <item name="boxCornerRadiusBottomEnd">8dp</item>
+        <item name="boxStrokeColor">@color/outlined_box_stroke</item>
+        <item name="hintTextColor">@color/outlined_hint_color</item>
+    </style>
+
 </resources>

@@ -124,27 +124,34 @@
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:layout_marginTop="4dp">
-                    <EditText
-                        android:id="@+id/etAssPlan"
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/OutlinedInputField"
                         android:layout_width="0dp"
-                        android:layout_height="42dp"
+                        android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:background="@drawable/edit_bg"
-                        android:hint="Kế hoạch hàng ngày"
-                        android:inputType="number"
-                        android:paddingHorizontal="10dp"
-                        android:textSize="13sp"
-                        android:layout_marginEnd="8dp" />
-                    <EditText
-                        android:id="@+id/etAssProd"
+                        android:layout_marginEnd="6dp"
+                        android:hint="Kế hoạch ngày">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etAssPlan"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="number"
+                            android:textSize="13sp" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/OutlinedInputField"
                         android:layout_width="0dp"
-                        android:layout_height="42dp"
+                        android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:background="@drawable/edit_bg"
-                        android:hint="Sản lượng hoàn thành"
-                        android:inputType="number"
-                        android:paddingHorizontal="10dp"
-                        android:textSize="13sp" />
+                        android:layout_marginStart="6dp"
+                        android:hint="Sản xuất ngày">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etAssProd"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="number"
+                            android:textSize="13sp" />
+                    </com.google.android.material.textfield.TextInputLayout>
                 </LinearLayout>
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -196,27 +203,34 @@
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:layout_marginTop="4dp">
-                    <EditText
-                        android:id="@+id/etSttPlan"
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/OutlinedInputField"
                         android:layout_width="0dp"
-                        android:layout_height="42dp"
+                        android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:background="@drawable/edit_bg"
-                        android:hint="Kế hoạch hàng ngày"
-                        android:inputType="number"
-                        android:paddingHorizontal="10dp"
-                        android:textSize="13sp"
-                        android:layout_marginEnd="8dp" />
-                    <EditText
-                        android:id="@+id/etSttProd"
+                        android:layout_marginEnd="6dp"
+                        android:hint="Kế hoạch ngày">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etSttPlan"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="number"
+                            android:textSize="13sp" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/OutlinedInputField"
                         android:layout_width="0dp"
-                        android:layout_height="42dp"
+                        android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:background="@drawable/edit_bg"
-                        android:hint="Sản lượng hoàn thành"
-                        android:inputType="number"
-                        android:paddingHorizontal="10dp"
-                        android:textSize="13sp" />
+                        android:layout_marginStart="6dp"
+                        android:hint="Sản xuất ngày">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etSttProd"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="number"
+                            android:textSize="13sp" />
+                    </com.google.android.material.textfield.TextInputLayout>
                 </LinearLayout>
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -268,27 +282,34 @@
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:layout_marginTop="4dp">
-                    <EditText
-                        android:id="@+id/etPrsttPlan"
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/OutlinedInputField"
                         android:layout_width="0dp"
-                        android:layout_height="42dp"
+                        android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:background="@drawable/edit_bg"
-                        android:hint="Kế hoạch hàng ngày"
-                        android:inputType="number"
-                        android:paddingHorizontal="10dp"
-                        android:textSize="13sp"
-                        android:layout_marginEnd="8dp" />
-                    <EditText
-                        android:id="@+id/etPrsttProd"
+                        android:layout_marginEnd="6dp"
+                        android:hint="Kế hoạch ngày">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etPrsttPlan"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="number"
+                            android:textSize="13sp" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/OutlinedInputField"
                         android:layout_width="0dp"
-                        android:layout_height="42dp"
+                        android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:background="@drawable/edit_bg"
-                        android:hint="Sản lượng hoàn thành"
-                        android:inputType="number"
-                        android:paddingHorizontal="10dp"
-                        android:textSize="13sp" />
+                        android:layout_marginStart="6dp"
+                        android:hint="Sản xuất ngày">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etPrsttProd"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="number"
+                            android:textSize="13sp" />
+                    </com.google.android.material.textfield.TextInputLayout>
                 </LinearLayout>
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -340,27 +361,34 @@
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:layout_marginTop="4dp">
-                    <EditText
-                        android:id="@+id/etCutPlan"
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/OutlinedInputField"
                         android:layout_width="0dp"
-                        android:layout_height="42dp"
+                        android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:background="@drawable/edit_bg"
-                        android:hint="Kế hoạch hàng ngày"
-                        android:inputType="number"
-                        android:paddingHorizontal="10dp"
-                        android:textSize="13sp"
-                        android:layout_marginEnd="8dp" />
-                    <EditText
-                        android:id="@+id/etCutProd"
+                        android:layout_marginEnd="6dp"
+                        android:hint="Kế hoạch ngày">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etCutPlan"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="number"
+                            android:textSize="13sp" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/OutlinedInputField"
                         android:layout_width="0dp"
-                        android:layout_height="42dp"
+                        android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:background="@drawable/edit_bg"
-                        android:hint="Sản lượng hoàn thành"
-                        android:inputType="number"
-                        android:paddingHorizontal="10dp"
-                        android:textSize="13sp" />
+                        android:layout_marginStart="6dp"
+                        android:hint="Sản xuất ngày">
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etCutProd"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="number"
+                            android:textSize="13sp" />
+                    </com.google.android.material.textfield.TextInputLayout>
                 </LinearLayout>
                 <LinearLayout
                     android:layout_width="match_parent"
