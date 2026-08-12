@@ -119,8 +119,10 @@ public class AppUpdater {
             public void onReceive(Context ctx, Intent intent) {
                 long id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1);
                 if (id == downloadId) {
-                    activity.unregisterReceiver(this);
-                    dm.remove(downloadId); // Xóa thông báo tải xuống khỏi thanh thông báo
+                    try {
+                        activity.unregisterReceiver(this);
+                    } catch (Exception ignored) {}
+                    // KHÔNG dùng dm.remove(downloadId) ở đây vì lệnh đó sẽ XÓA FILE APK vừa tải về!
                     installApk(activity, outputFile);
                 }
             }
@@ -130,7 +132,21 @@ public class AppUpdater {
     }
 
     private static void installApk(Activity activity, File file) {
-        if (!file.exists()) return;
+        if (file == null || !file.exists()) {
+            Toast.makeText(activity, "Lỗi: Không tìm thấy file APK đã tải về.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        // Kiểm tra quyền cài ứng dụng từ nguồn không xác định trên Android 8.0+ (API 26+)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (!activity.getPackageManager().canRequestPackageInstalls()) {
+                Toast.makeText(activity, "Vui lòng cấp quyền 'Cài đặt ứng dụng không rõ nguồn gốc' để hoàn tất cập nhật.", Toast.LENGTH_LONG).show();
+                Intent permIntent = new Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES)
+                    .setData(Uri.parse("package:" + activity.getPackageName()));
+                activity.startActivity(permIntent);
+                return;
+            }
+        }
 
         Uri apkUri = FileProvider.getUriForFile(
             activity,
@@ -147,7 +163,7 @@ public class AppUpdater {
             activity.startActivity(install);
         } catch (Exception e) {
             Log.e("AppUpdater", "Lỗi khởi chạy cài đặt: " + e.toString());
-            Toast.makeText(activity, "Không thể mở file cài đặt. Vui lòng cấp quyền cài đặt ứng dụng không rõ nguồn gốc.", Toast.LENGTH_LONG).show();
+            Toast.makeText(activity, "Không thể mở màn hình cài đặt: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 }

@@ -24,11 +24,30 @@ import androidx.appcompat.app.AppCompatActivity;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Enumeration;
 import java.util.Locale;
 
 public class UpdateCfmActivity extends AppCompatActivity {
+
+    private static String getLocalIpAddress() {
+        try {
+            for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements(); ) {
+                NetworkInterface intf = en.nextElement();
+                for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements(); ) {
+                    InetAddress inetAddress = enumIpAddr.nextElement();
+                    if (!inetAddress.isLoopbackAddress() && inetAddress instanceof Inet4Address) {
+                        return inetAddress.getHostAddress();
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+        return null;
+    }
 
     private static final SimpleDateFormat SDF = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
 
@@ -605,17 +624,17 @@ public class UpdateCfmActivity extends AppCompatActivity {
                 JSONObject body = new JSONObject();
                 body.put("CFM_ID", cfmId);
                 body.put("WORK_DATE", selectedWorkDate.replace("-", "")); // YYYYMMDD
+                String localIp = getLocalIpAddress();
+                if (localIp != null) {
+                    body.put("IP", localIp);
+                }
 
                 for (int i = 0; i < 4; i++) {
                     String planStr = etPlans[i].getText().toString().trim();
                     String prodStr = etProds[i].getText().toString().trim();
 
-                    if (!planStr.isEmpty()) {
-                        body.put(PROCS[i] + "_PLAN", Integer.parseInt(planStr));
-                    }
-                    if (!prodStr.isEmpty()) {
-                        body.put(PROCS[i] + "_PROD", Integer.parseInt(prodStr));
-                    }
+                    body.put(PROCS[i] + "_PLAN", planStr.isEmpty() ? 0 : Integer.parseInt(planStr));
+                    body.put(PROCS[i] + "_PROD", prodStr.isEmpty() ? 0 : Integer.parseInt(prodStr));
                 }
 
                 String resp = sh.makePostCall(Config.SAVE_CFM_DAILY_PROGRESS, body.toString());
