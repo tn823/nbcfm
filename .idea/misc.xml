@@ -3,9 +3,11 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/nbcfm/app/src/main/res/drawable/bg_icon_circle_warning.xml" value="0.3635" />
         <entry key="..\:/nbcfm/app/src/main/res/drawable/btn_red.xml" value="0.351" />
         <entry key="..\:/nbcfm/app/src/main/res/drawable/edit_bg.xml" value="0.351" />
         <entry key="..\:/nbcfm/app/src/main/res/drawable/highlight_bg.xml" value="0.351" />
+        <entry key="..\:/nbcfm/app/src/main/res/drawable/ic_popup_warning.xml" value="0.3635" />
         <entry key="..\:/nbcfm/app/src/main/res/drawable/placeholder_bg.xml" value="0.3255" />
         <entry key="..\:/nbcfm/app/src/main/res/layout/activity_main.xml" value="0.25" />
         <entry key="..\:/nbcfm/app/src/main/res/layout/activity_update_cfm.xml" value="0.3614583333333333" />
@@ -13,6 +15,7 @@
         <entry key="..\:/nbcfm/app/src/main/res/layout/activity_update_production.xml" value="0.25" />
         <entry key="..\:/nbcfm/app/src/main/res/layout/dialog_confirm_delete_plan.xml" value="0.5" />
         <entry key="..\:/nbcfm/app/src/main/res/layout/dialog_history_item.xml" value="0.23177083333333334" />
+        <entry key="..\:/nbcfm/app/src/main/res/layout/dialog_status_popup.xml" value="0.3625" />
         <entry key="..\:/nbcfm/app/src/main/res/layout/item_cfm_card.xml" value="0.3625" />
         <entry key="..\:/nbcfm/app/src/main/res/layout/item_cfm_card_placeholder.xml" value="0.3625" />
         <entry key="..\:/nbcfm/app/src/main/res/layout/spinnerlayout.xml" value="0.3625" />

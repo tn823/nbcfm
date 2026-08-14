@@ -209,6 +209,14 @@ public class UpdateCfmActivity extends AppCompatActivity {
         dlg.show();
     }
 
+    private String getProcFullName(String proc) {
+        if ("ASS".equalsIgnoreCase(proc)) return "Assembly";
+        if ("STT".equalsIgnoreCase(proc)) return "Stitching";
+        if ("PRSTT".equalsIgnoreCase(proc)) return "Pre-stitching";
+        if ("CUT".equalsIgnoreCase(proc)) return "Cutting";
+        return proc;
+    }
+
     private boolean validateAndSave() {
         for (int i = 0; i < 4; i++) {
             String planStr = etPlans[i].getText().toString().trim();
@@ -221,11 +229,11 @@ public class UpdateCfmActivity extends AppCompatActivity {
                 try {
                     p = Integer.parseInt(planStr);
                     if (p < 0) {
-                        Toast.makeText(this, PROCS[i] + ": Kế hoạch không thể âm.", Toast.LENGTH_SHORT).show();
+                        StatusDialogHelper.showWarning(this, "Giá trị không hợp lệ", PROCS[i] + ": Kế hoạch không thể âm.", null);
                         return false;
                     }
                 } catch (Exception e) {
-                    Toast.makeText(this, PROCS[i] + ": Kế hoạch không hợp lệ.", Toast.LENGTH_SHORT).show();
+                    StatusDialogHelper.showWarning(this, "Giá trị không hợp lệ", PROCS[i] + ": Kế hoạch không hợp lệ.", null);
                     return false;
                 }
             }
@@ -234,13 +242,20 @@ public class UpdateCfmActivity extends AppCompatActivity {
                 try {
                     pr = Integer.parseInt(prodStr);
                     if (pr < 0) {
-                        Toast.makeText(this, PROCS[i] + ": Sản lượng không thể âm.", Toast.LENGTH_SHORT).show();
+                        StatusDialogHelper.showWarning(this, "Giá trị không hợp lệ", PROCS[i] + ": Sản lượng không thể âm.", null);
                         return false;
                     }
                 } catch (Exception e) {
-                    Toast.makeText(this, PROCS[i] + ": Sản lượng không hợp lệ.", Toast.LENGTH_SHORT).show();
+                    StatusDialogHelper.showWarning(this, "Giá trị không hợp lệ", PROCS[i] + ": Sản lượng không hợp lệ.", null);
                     return false;
                 }
+            }
+
+            // ĐIỀU KIỆN: Nếu không có Plan QTY (kế hoạch = 0 hoặc rỗng) thì không cho nhập / lưu Production QTY
+            if (pr > 0 && p <= 0) {
+                StatusDialogHelper.showWarning(this, "Cảnh báo Kế hoạch",
+                        "Quy trình " + PROCS[i] + " Chưa có số lượng Kế hoạch.", null);
+                return false;
             }
 
             int newTotalPlan = otherPlanAcc[i] + p;
@@ -248,11 +263,13 @@ public class UpdateCfmActivity extends AppCompatActivity {
 
             if (requestedQtyLimit > 0) {
                 if (newTotalPlan > requestedQtyLimit) {
-                    Toast.makeText(this, PROCS[i] + ": Tổng Kế hoạch tích lũy (" + newTotalPlan + ") vượt quá Requested QTY (" + requestedQtyLimit + ").", Toast.LENGTH_LONG).show();
+                    StatusDialogHelper.showWarning(this, "Vượt quá Requested QTY",
+                            "Quy trình " + PROCS[i] + ": Tổng Kế hoạch tích lũy (" + newTotalPlan + "prs) vượt quá Requested QTY (" + requestedQtyLimit + "prs).", null);
                     return false;
                 }
                 if (newTotalProd > requestedQtyLimit) {
-                    Toast.makeText(this, PROCS[i] + ": Tổng Sản lượng tích lũy (" + newTotalProd + ") vượt quá Requested QTY (" + requestedQtyLimit + ").", Toast.LENGTH_LONG).show();
+                    StatusDialogHelper.showWarning(this, "Vượt quá Requested QTY",
+                            "Quy trình " + PROCS[i] + ": Tổng Sản lượng tích lũy (" + newTotalProd + "prs) vượt quá Requested QTY (" + requestedQtyLimit + "prs).", null);
                     return false;
                 }
             }
@@ -294,7 +311,7 @@ public class UpdateCfmActivity extends AppCompatActivity {
         protected void onPostExecute(String result) {
             showLoading(false);
             if (result == null) {
-                Toast.makeText(UpdateCfmActivity.this, "Lỗi kết nối server khi tải chi tiết.", Toast.LENGTH_SHORT).show();
+                StatusDialogHelper.showError(UpdateCfmActivity.this, "Lỗi kết nối", "Lỗi kết nối server khi tải chi tiết lịch sử.", null);
                 tvStatus.setText("Tải chi tiết thất bại.");
                 return;
             }
@@ -303,7 +320,7 @@ public class UpdateCfmActivity extends AppCompatActivity {
                 tvStatus.setText("Đã tải chi tiết thành công.");
                 displayDailyHistoryPopup(process, arr);
             } catch (Exception e) {
-                Toast.makeText(UpdateCfmActivity.this, "Chưa có dữ liệu tích lũy.", Toast.LENGTH_SHORT).show();
+                StatusDialogHelper.showWarning(UpdateCfmActivity.this, "Thông báo", "Chưa có dữ liệu tích lũy cho quy trình " + process + ".", null);
                 tvStatus.setText("Không có dữ liệu.");
             }
         }
@@ -565,6 +582,7 @@ public class UpdateCfmActivity extends AppCompatActivity {
             showLoading(false);
             if (error != null) {
                 tvStatus.setText(error);
+                StatusDialogHelper.showError(UpdateCfmActivity.this, "Lỗi tải dữ liệu", error, null);
                 return;
             }
 
@@ -658,18 +676,24 @@ public class UpdateCfmActivity extends AppCompatActivity {
         protected void onPostExecute(String result) {
             showLoading(false);
             if (error != null) {
-                Toast.makeText(UpdateCfmActivity.this, error, Toast.LENGTH_LONG).show();
+                StatusDialogHelper.showError(UpdateCfmActivity.this, "Lưu thất bại", error, null);
                 tvStatus.setText(error);
                 return;
             }
 
             if ("OK".equals(result)) {
-                Toast.makeText(UpdateCfmActivity.this, "Đã lưu thành công tiến độ ngày " + selectedWorkDate + "!", Toast.LENGTH_LONG).show();
                 tvStatus.setText("Lưu thành công.");
                 setResult(RESULT_OK);
-                new LoadAllData().execute();
+                StatusDialogHelper.showSuccess(UpdateCfmActivity.this, "Lưu thành công!",
+                        "Đã lưu thành công tiến độ ngày " + selectedWorkDate + " cho CFM " + cfmId + "!",
+                        new Runnable() {
+                            @Override
+                            public void run() {
+                                new LoadAllData().execute();
+                            }
+                        });
             } else {
-                Toast.makeText(UpdateCfmActivity.this, result, Toast.LENGTH_LONG).show();
+                StatusDialogHelper.showError(UpdateCfmActivity.this, "Lưu thất bại", result, null);
                 tvStatus.setText(result);
             }
         }

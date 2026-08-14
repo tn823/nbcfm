@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_status_dialog"
+    android:paddingLeft="24dp"
+    android:paddingRight="24dp"
+    android:paddingStart="24dp"
+    android:paddingEnd="24dp"
+    android:paddingTop="24dp"
+    android:paddingBottom="20dp"
+    android:gravity="center_horizontal">
+
+    <!-- Icon Badge Container -->
+    <FrameLayout
+        android:id="@+id/layoutIconContainer"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:background="@drawable/bg_icon_circle_success"
+        android:layout_marginBottom="16dp">
+
+        <ImageView
+            android:id="@+id/ivPopupIcon"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:layout_gravity="center"
+            android:contentDescription="Status Icon"
+            android:src="@drawable/ic_popup_success" />
+    </FrameLayout>
+
+    <!-- Popup Title -->
+    <TextView
+        android:id="@+id/tvPopupTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Thông báo"
+        android:textColor="#1E293B"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Popup Message -->
+    <TextView
+        android:id="@+id/tvPopupMessage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Nội dung thông báo chi tiết..."
+        android:textColor="#475569"
+        android:textSize="14sp"
+        android:lineSpacingExtra="3dp"
+        android:gravity="center"
+        android:layout_marginBottom="22dp" />
+
+    <!-- Action Button -->
+    <Button
+        android:id="@+id/btnPopupAction"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:text="ĐỒNG Ý"
+        android:textColor="#FFFFFF"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:background="@drawable/btn_popup_success"
+        app:backgroundTint="@null"
+        android:stateListAnimator="@null" />
+
+</LinearLayout>
